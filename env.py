@@ -30,10 +30,12 @@ class SumoEnv(gym.Env):
         else:
             self._sumoBinary = checkBinary('sumo-gui')
 
+        self.sumoCmd = [self._sumoBinary, "-c", "demo.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
+
         self.gymStep = 0
 
-        traci.start([self._sumoBinary, "-c", "demo.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"])
-        pass
+        traci.start(self.sumoCmd)
+
 
     def step(self, action):
 
@@ -46,6 +48,7 @@ class SumoEnv(gym.Env):
         ########################################
         #   FAST FORWARD TO NEXT DECISION STEP #
         ########################################
+        self.sumoStep()
         while len(self.stoppedBuses()) < 1:
             self.sumoStep()
 
@@ -60,6 +63,7 @@ class SumoEnv(gym.Env):
 
         if self.gymStep > 10:
             done = True
+            print(self.gymStep)
         else:
             done = False
 
@@ -70,10 +74,9 @@ class SumoEnv(gym.Env):
 
     def reset(self):
         traci.close()
-
-        traci.start([self._sumoBinary, "-c", "demo.sumocfg", "-tripinfo-output", "tripinfo.xml", "--no-internal-links"])
-        pass
-
+        print("first")
+        traci.start(self.sumoCmd)
+        print("second")
     def close(self):
         traci.close()
 
@@ -87,6 +90,22 @@ class SumoEnv(gym.Env):
 
     def sumoStep(self):
         traci.simulationStep()
+
+
+env = SumoEnv()
+episodes = 5
+for episode in range(1, episodes + 1):
+
+    state = env.reset()
+
+    done = False
+    score = 0
+
+    while not done:
+        state, reward, done, info = env.step(0)
+        score += reward
+
+    print("Episode: {} Score: {}".format(episode, score))
 
 
     
