@@ -1,0 +1,51 @@
+<additional>
+    <vType id="BUS" accel="2.6" decel="4.5" sigma="0" length="12" minGap="3" maxSpeed="70" color="1,1,0" guiShape="bus"/>
+
+    <!-- <busStop id="stop1" lane="e1_1" startPos="15" endPos="20" lines="line1"/>
+    <busStop id="stop2" lane="e4_1" startPos="15" endPos="20" lines="line1"/> -->
+    <busStop id="stop1" lane="1_1" startPos="15" endPos="20" lines="line1"/>
+    <busStop id="stop2" lane="4_1" startPos="15" endPos="20" lines="line1"/>
+    
+
+    <!-- <vehicle id="0" type="BUS" depart="0" color="1,1,0">
+        <route edges="e1 e2 e3 e4 e5 e6 e1"/>
+        <stop busStop="stop1" duration="20"/>
+        <stop busStop="stop2" duration="20"/>
+    </vehicle> -->
+
+    <!-- <flow id="bus" from = "e1" to ="e1" line="bus" begin="0" end="101" period="100">
+        <route id="busRoute" edges="e1 e2 e3 e4 e5 e6" repeat="5"/>
+        <stop busStop="stop1" duration="20"/>
+        <stop busStop="stop2" duration="20"/>
+    </flow> -->
+
+    <!-- <route id="busRoute" edges="e1 e2 e3 e4 e5 e6" repeat="5"> -->
+    <route id="busRoute" edges="1 2 3 4 5 0" repeat="5">
+        <stop busStop="stop1" duration="20"/>
+        <stop busStop="stop2" duration="20"/>
+    </route>
+    <flow id="bus" line="line1" route="busRoute" begin="0" end="101" period="100"/>
+
+    <personFlow id="persons" begin="0" end="400" period="10">
+        <!-- <walk from="e1" busStop="stop1"/> WAS A COMMENT BEFORE -->
+        <walk from="1" busStop="stop1"/>
+        <ride busStop="stop2" lines="line1"/>
+        <!-- <walk to="e4" arrivalPos="30"/> WAS A COMMENT BEFORE -->
+        <walk to="4" arrivalPos="30"/>
+    </personFlow>
+
+    
+
+    <!-- <rerouter id="rerouter_0" edges="e1" probability="1">
+        <interval begin="0" end="10000">
+            <destProbReroute id="e2"/>
+        </interval>
+    </rerouter>
+
+    <rerouter id="rerouter_2" edges="e2" probability="1">
+        <interval begin="0" end="10000">
+            <destProbReroute id="e1"/>
+        </interval>
+    </rerouter> -->
+
+</additional>

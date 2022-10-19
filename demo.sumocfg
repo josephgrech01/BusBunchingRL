@@ -1,0 +1,6 @@
+<configuration>
+    <input>
+        <net-file value="demo.net.xml"/>
+        <additional-files value="demo.add.xml"/>
+    </input>
+</configuration>
