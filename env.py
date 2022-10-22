@@ -35,6 +35,7 @@ class SumoEnv(gym.Env):
         self.gymStep = 0
         self.busStops = ["stop1", "stop2"]
         self.stoppedBuses = [None, None]
+        self.decisionBus = "bus.0"
 
         traci.start(self.sumoCmd)
 
@@ -47,6 +48,14 @@ class SumoEnv(gym.Env):
         #####################
         #   APPLY ACTION    #
         #####################
+        if action == 0 and self.gymStep==200:  # hold the bus
+            stopData = traci.vehicle.getStops(self.decisionBus, 1)
+            traci.vehicle.setBusStop(self.decisionBus, stopData[0].stoppingPlaceID, duration=70)
+            print("holding {} at {}".format(self.decisionBus, stopData[0].stoppingPlaceID))
+        elif action == 1 and self.gymStep == 6: # skip the stop
+            print("applied action")
+            traci.vehicle.resume(self.decisionBus)
+
 
         ########################################
         #   FAST FORWARD TO NEXT DECISION STEP #
@@ -54,9 +63,15 @@ class SumoEnv(gym.Env):
         # self.sumoStep()
         # while len(self.stoppedBuses()) < 1:
         #     self.sumoStep()
-        self.sumoStep()
+
+
+
+        # self.sumoStep() CHECK ############
         while len(self.newStoppedBus()) < 1:
             self.sumoStep()
+
+
+        ###### UPDATE DECISION BUS #######
 
 
         ###############################################
@@ -83,6 +98,8 @@ class SumoEnv(gym.Env):
         traci.close()
         traci.start(self.sumoCmd)
         self.gymStep = 0
+        self.stoppedBuses = [None, None]
+        self.decisionBus = "bus.0"
 
     def close(self):
         traci.close()
@@ -116,19 +133,6 @@ class SumoEnv(gym.Env):
         return stopped
 
 
-
-        # stopped = dict()
-        # for stop in ["stop1", "stop2"]:
-        #     buses = traci.busstop.getVehicleIDs(stop)
-        #     for bus in buses:
-        #         if self.stoppedBuses[bus[-1]] == None:
-        #             self.stoppedBuses[bus[-1]] = stop
-        #             stopped[bus] = stop
-
-
-        pass
-
-
     def sumoStep(self):
         traci.simulationStep()
 
@@ -143,7 +147,7 @@ for episode in range(1, episodes + 1):
     score = 0
 
     while not done:
-        state, reward, done, info = env.step(0)
+        state, reward, done, info = env.step(1)
         score += reward
 
     print("Episode: {} Score: {}".format(episode, score))
