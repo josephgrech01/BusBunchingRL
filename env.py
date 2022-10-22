@@ -33,6 +33,8 @@ class SumoEnv(gym.Env):
         self.sumoCmd = [self._sumoBinary, "-c", "demo.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
 
         self.gymStep = 0
+        self.busStops = ["stop1", "stop2"]
+        self.stoppedBuses = [None, None]
 
         traci.start(self.sumoCmd)
 
@@ -40,6 +42,7 @@ class SumoEnv(gym.Env):
     def step(self, action):
 
         self.gymStep += 1
+        print("new gym step")
 
         #####################
         #   APPLY ACTION    #
@@ -48,8 +51,11 @@ class SumoEnv(gym.Env):
         ########################################
         #   FAST FORWARD TO NEXT DECISION STEP #
         ########################################
+        # self.sumoStep()
+        # while len(self.stoppedBuses()) < 1:
+        #     self.sumoStep()
         self.sumoStep()
-        while len(self.stoppedBuses()) < 1:
+        while len(self.newStoppedBus()) < 1:
             self.sumoStep()
 
 
@@ -62,8 +68,9 @@ class SumoEnv(gym.Env):
         reward = 0
 
         if self.gymStep > 10:
-            done = True
             print(self.gymStep)
+            done = True
+            
         else:
             done = False
 
@@ -74,9 +81,9 @@ class SumoEnv(gym.Env):
 
     def reset(self):
         traci.close()
-        print("first")
         traci.start(self.sumoCmd)
-        print("second")
+        self.gymStep = 0
+
     def close(self):
         traci.close()
 
@@ -88,12 +95,46 @@ class SumoEnv(gym.Env):
                 stopped[bus] = stop
         return stopped
 
+    def newStoppedBus(self):   
+        stopped = dict() 
+        for vehicle in traci.vehicle.getIDList():
+            if vehicle[0:3] == "bus":
+                if traci.vehicle.isAtBusStop(vehicle):
+                    if self.stoppedBuses[int(vehicle[-1])] == None:
+                        print(vehicle)
+                        #get stop id and update stoppedBuses list
+                        for stop in self.busStops:
+                            buses = traci.busstop.getVehicleIDs(stop)
+                            if vehicle in buses:
+                                self.stoppedBuses[int(vehicle[-1])] = stop
+                                stopped[vehicle] = stop
+
+                else:
+                    if self.stoppedBuses[int(vehicle[-1])] != None:
+                        self.stoppedBuses[int(vehicle[-1])] = None
+
+        return stopped
+
+
+
+        # stopped = dict()
+        # for stop in ["stop1", "stop2"]:
+        #     buses = traci.busstop.getVehicleIDs(stop)
+        #     for bus in buses:
+        #         if self.stoppedBuses[bus[-1]] == None:
+        #             self.stoppedBuses[bus[-1]] = stop
+        #             stopped[bus] = stop
+
+
+        pass
+
+
     def sumoStep(self):
         traci.simulationStep()
 
 
 env = SumoEnv()
-episodes = 5
+episodes = 3
 for episode in range(1, episodes + 1):
 
     state = env.reset()
@@ -106,6 +147,8 @@ for episode in range(1, episodes + 1):
         score += reward
 
     print("Episode: {} Score: {}".format(episode, score))
+
+env.close()
 
 
     
