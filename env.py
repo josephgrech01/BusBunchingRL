@@ -50,13 +50,15 @@ class SumoEnv(gym.Env):
         #####################
         #   APPLY ACTION    #
         #####################
-        if action == 0 and self.gymStep==6:#200:  # hold the bus ###################    decision bus need to be added when bus 0 enters simulation
-            stopData = traci.vehicle.getStops(self.decisionBus, 1)
-            traci.vehicle.setBusStop(self.decisionBus, stopData[0].stoppingPlaceID, duration=0)
-            print("holding {} at {}".format(self.decisionBus, stopData[0].stoppingPlaceID))
-        elif action == 1 and self.gymStep == 7: # skip the stop
-            print("applied action")
-            traci.vehicle.resume(self.decisionBus)
+        if traci.simulation.getTime() > 1: #the first bus leaves after the first simulation step
+            if action == 0: # hold the bus
+                stopData = traci.vehicle.getStops(self.decisionBus, 1)
+                traci.vehicle.setBusStop(self.decisionBus, stopData[0].stoppingPlaceID, duration=70)
+                print("holding {} at {}".format(self.decisionBus, stopData[0].stoppingPlaceID))
+            elif action == 1: # skip the stop
+                stopData = traci.vehicle.getStops(self.decisionBus, 1)
+                traci.vehicle.setBusStop(self.decisionBus, stopData[0].stoppingPlaceID, duration=0)
+            #else action == 2, no action taken and bus behaves normally
 
 
         ########################################
@@ -67,25 +69,14 @@ class SumoEnv(gym.Env):
         #     self.sumoStep()
 
 
-
         # self.sumoStep() # CHECK ############
-        # while len(self.newStoppedBus()) < 1:
-        while len(self.reachedStop()) < 1:
+        reachedStopBuses = self.reachedStop()
+        while len(reachedStopBuses) < 1:
             self.sumoStep()
-            if traci.simulation.getTime() == 6:
-                print("lane position: ", traci.vehicle.getLanePosition(self.decisionBus))
-                print("bus stop start position: ", traci.busstop.getStartPos("stop1"))
-                print("bus stop end position: ", traci.busstop.getEndPos("stop1"))
-            if traci.simulation.getTime() == 7:
-                print("lane position: ", traci.vehicle.getLanePosition(self.decisionBus))
-                print("bus stop start position: ", traci.busstop.getStartPos("stop1"))
-                print("bus stop end position: ", traci.busstop.getEndPos("stop1"))
-            # print("stopped: ", traci.simulation.getStopStartingVehiclesIDList())
-        # print("stopped: ", traci.simulation.getStopStartingVehiclesIDList())
-
-
+            reachedStopBuses = self.reachedStop()
 
         ###### UPDATE DECISION BUS #######
+        self.decisionBus = str(list(reachedStopBuses.keys())[0])
 
 
         ###############################################
@@ -164,18 +155,12 @@ class SumoEnv(gym.Env):
                     if traci.busstop.getLaneID(stop) == traci.vehicle.getLaneID(vehicle):
                         if (traci.vehicle.getLanePosition(vehicle) >= (traci.busstop.getStartPos(stop) - 5)) and (traci.vehicle.getLanePosition(vehicle) <= (traci.busstop.getEndPos(stop) + 1)):
                             if self.stoppedBuses[int(vehicle[-1])] == None:
-                                print("Added to list: ", vehicle)
-                                print(self.stoppedBuses)
                                 # get stop id and update stopped bused list
                                 self.stoppedBuses[int(vehicle[-1])] = stop
                                 reached[vehicle] = stop
-                                print("updated list: ", self.stoppedBuses)
                         else:
                             if self.stoppedBuses[int(vehicle[-1])] != None:
-                                print("removed from list: ", vehicle)
-                                print(self.stoppedBuses)
                                 self.stoppedBuses[int(vehicle[-1])] = None
-                                print("updated list: ", self.stoppedBuses)
         
         return reached
 
@@ -195,7 +180,7 @@ for episode in range(1, episodes + 1):
     score = 0
 
     while not done:
-        state, reward, done, info = env.step(0)
+        state, reward, done, info = env.step(10)
         score += reward
 
     print("Episode: {} Score: {}".format(episode, score))
