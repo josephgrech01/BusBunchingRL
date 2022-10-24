@@ -5,6 +5,7 @@ import os
 import sys
 import optparse
 import numpy as np
+from torch import float32
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -50,6 +51,12 @@ class SumoEnv(gym.Env):
 
         self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
+        print("1_1: ", traci.lane.getLength("1_1"))
+        print("2_0: ", traci.lane.getLength("2_0"))
+        print("3_0: ", traci.lane.getLength("3_0"))
+        print("4_1: ", traci.lane.getLength("4_1"))
+        print("5_0: ", traci.lane.getLength("5_0"))
+        print("0_0: ", traci.lane.getLength("0_0"))
 
     def step(self, action):
 
@@ -99,7 +106,7 @@ class SumoEnv(gym.Env):
         ###############################################
 
         state = {}
-        if self.gymStep == 2:
+        if self.gymStep == 5:
             self.computeState()
 
         reward = 0
@@ -190,12 +197,19 @@ class SumoEnv(gym.Env):
 
     def computeState(self):
         stop = self.oneHotEncode(self.busStops, self.decisionBus[1])
-        pass
+        headways = self.getHeadways()
+        
+        state = stop + headways
+
+        print("forward headway from decision {} = {}".format(self.decisionBus[0], headways[0]))
+        print("backward headway from decision {} = {}".format(self.decisionBus[0], headways[1]))
+
+        return state
 
     def oneHotEncode(self, list, item):
         return [1 if i == item else 0 for i in list]
 
-    def getHeadway(leader, follower):
+    def getHeadway(self, leader, follower):
         h = traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower)
     
         repeats = abs(int(traci.vehicle.getRoadID(leader)) - int(traci.vehicle.getRoadID(follower))) - 1
@@ -208,6 +222,25 @@ class SumoEnv(gym.Env):
         h += traci.vehicle.getLanePosition(leader) 
 
         return h
+
+    def getHeadways(self):
+        if len(self.buses) > 1:
+            if int(self.decisionBus[0][-1]) + 1 == len(self.buses):
+                follower = "bus.0"
+            else:
+                follower = "bus." + str(int(self.decisionBus[0][-1]) + 1)
+
+            if int(self.decisionBus[0][-1]) == 0:
+                leader = "bus." + str(len(self.buses) - 1)
+            else:
+                leader = "bus." + str(int(self.decisionBus[0][-1]) - 1)
+
+            forwardHeadway = self.getHeadway(leader, self.decisionBus[0])
+            backwardHeadway = self.getHeadway(self.decisionBus[0], follower)
+
+            return [forwardHeadway, backwardHeadway]
+        else:
+            return [0, 0]
         
 
 
