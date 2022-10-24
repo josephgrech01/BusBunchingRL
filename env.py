@@ -4,6 +4,7 @@ from gym.spaces import Discrete, Box
 import os
 import sys
 import optparse
+import numpy as np
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -32,18 +33,30 @@ class SumoEnv(gym.Env):
 
         self.sumoCmd = [self._sumoBinary, "-c", "demo.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
 
+
+        self.action_space = Discrete(3)
+
         self.gymStep = 0
         self.busStops = ["stop1", "stop2"]
+        print(self.busStops)
+       
         self.stoppedBuses = [None, None]
-        self.decisionBus = "bus.0"
+        self.decisionBus = ["bus.0", "stop1"]
 
         traci.start(self.sumoCmd)
+
+        self.busStops = list(traci.simulation.getBusStopIDList())
+        print(self.busStops)
+
+        self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
 
     def step(self, action):
 
         self.gymStep += 1
         print("new gym step ", self.gymStep)
+
+        self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
         
 
@@ -52,18 +65,19 @@ class SumoEnv(gym.Env):
         #####################
         if traci.simulation.getTime() > 1: #the first bus leaves after the first simulation step
             if action == 0: # hold the bus
-                stopData = traci.vehicle.getStops(self.decisionBus, 1)
-                traci.vehicle.setBusStop(self.decisionBus, stopData[0].stoppingPlaceID, duration=70)
-                print("holding {} at {}".format(self.decisionBus, stopData[0].stoppingPlaceID))
+                stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
+                traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=70)
+                print("holding {} at {}".format(self.decisionBus[0], stopData[0].stoppingPlaceID))
             elif action == 1: # skip the stop
-                stopData = traci.vehicle.getStops(self.decisionBus, 1)
-                traci.vehicle.setBusStop(self.decisionBus, stopData[0].stoppingPlaceID, duration=0)
+                stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
+                traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=0)
             #else action == 2, no action taken and bus behaves normally
 
 
         ########################################
         #   FAST FORWARD TO NEXT DECISION STEP #
         ########################################
+
         # self.sumoStep()
         # while len(self.stoppedBuses()) < 1:
         #     self.sumoStep()
@@ -76,7 +90,8 @@ class SumoEnv(gym.Env):
             reachedStopBuses = self.reachedStop()
 
         ###### UPDATE DECISION BUS #######
-        self.decisionBus = str(list(reachedStopBuses.keys())[0])
+        # self.decisionBus = [str(list(reachedStopBuses.keys())[0]), str(list(reachedStopBuses.items())[0])]
+        self.decisionBus = [reachedStopBuses[0][0], reachedStopBuses[0][1]]
 
 
         ###############################################
@@ -84,6 +99,8 @@ class SumoEnv(gym.Env):
         ###############################################
 
         state = {}
+        if self.gymStep == 2:
+            self.computeState()
 
         reward = 0
 
@@ -104,7 +121,8 @@ class SumoEnv(gym.Env):
         traci.start(self.sumoCmd)
         self.gymStep = 0
         self.stoppedBuses = [None, None]
-        self.decisionBus = "bus.0"
+        self.decisionBus = ["bus.0", "stop1"]
+        self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
     def close(self):
         traci.close()
@@ -148,7 +166,8 @@ class SumoEnv(gym.Env):
         return stopped
 
     def reachedStop(self):
-        reached = dict()
+        # reached = dict()
+        reached = []
         for vehicle in traci.vehicle.getIDList():
             if vehicle[0:3] == "bus":
                 for stop in self.busStops:
@@ -157,7 +176,8 @@ class SumoEnv(gym.Env):
                             if self.stoppedBuses[int(vehicle[-1])] == None:
                                 # get stop id and update stopped bused list
                                 self.stoppedBuses[int(vehicle[-1])] = stop
-                                reached[vehicle] = stop
+                                # reached[vehicle] = stop
+                                reached.append([vehicle, stop])
                         else:
                             if self.stoppedBuses[int(vehicle[-1])] != None:
                                 self.stoppedBuses[int(vehicle[-1])] = None
@@ -167,6 +187,28 @@ class SumoEnv(gym.Env):
 
     def sumoStep(self):
         traci.simulationStep()
+
+    def computeState(self):
+        stop = self.oneHotEncode(self.busStops, self.decisionBus[1])
+        pass
+
+    def oneHotEncode(self, list, item):
+        return [1 if i == item else 0 for i in list]
+
+    def getHeadway(leader, follower):
+        h = traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower)
+    
+        repeats = abs(int(traci.vehicle.getRoadID(leader)) - int(traci.vehicle.getRoadID(follower))) - 1
+        
+        for i in range(repeats):
+            print(type(str((int(traci.vehicle.getRoadID(follower))+i+1)%6)))
+            h += traci.lane.getLength(str((int(traci.vehicle.getRoadID(follower))+i+1)%6)+"_0")
+
+
+        h += traci.vehicle.getLanePosition(leader) 
+
+        return h
+        
 
 
 
