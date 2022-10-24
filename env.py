@@ -51,12 +51,6 @@ class SumoEnv(gym.Env):
 
         self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
-        print("1_1: ", traci.lane.getLength("1_1"))
-        print("2_0: ", traci.lane.getLength("2_0"))
-        print("3_0: ", traci.lane.getLength("3_0"))
-        print("4_1: ", traci.lane.getLength("4_1"))
-        print("5_0: ", traci.lane.getLength("5_0"))
-        print("0_0: ", traci.lane.getLength("0_0"))
 
     def step(self, action):
 
@@ -107,7 +101,8 @@ class SumoEnv(gym.Env):
 
         state = {}
         if self.gymStep == 5:
-            self.computeState()
+            state = self.computeState()
+            print(state)
 
         reward = 0
 
@@ -199,7 +194,7 @@ class SumoEnv(gym.Env):
         stop = self.oneHotEncode(self.busStops, self.decisionBus[1])
         headways = self.getHeadways()
         
-        state = stop + headways
+        state = [stop] + [headways]
 
         print("forward headway from decision {} = {}".format(self.decisionBus[0], headways[0]))
         print("backward headway from decision {} = {}".format(self.decisionBus[0], headways[1]))
