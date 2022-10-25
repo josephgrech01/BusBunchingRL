@@ -1,11 +1,12 @@
 import optparse
+from cv2 import getNumberOfCPUs
 import gym
 from gym.spaces import Discrete, Box
 import os
 import sys
 import optparse
 import numpy as np
-from torch import float32
+# from torch import float32
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -48,12 +49,15 @@ class SumoEnv(gym.Env):
 
         self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
+        # self.busCapacity = traci.vehicle.getPersonCapacity(self.decisionBus[0])
+
         self.action_space = Discrete(3)
 
-        low = np.array(np.zeros(len(self.busStops)) + np.zeros(len(self.buses)) +  [0, 0] +  np.zeros(len(self.busStops)) +  np.zeros(len(self.busStops)), dtype=float32)
-        high = np.array(np.ones(len(self.busStops)) + np.ones(len(self.buses)) + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops], dtype=float32)
+        # DEPEND ON THE NETWORK
+        low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(len(self.buses))] +  [0, 0] +  [0 for _ in range(len(self.busStops))] +  [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
+        high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(len(self.buses))] + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops] + [4, 4, 4], dtype='float32')
 
-        self.observation_space = Box()
+        self.observation_space = Box(low, high, dtype='float32')
 
 
     def step(self, action):
@@ -210,9 +214,12 @@ class SumoEnv(gym.Env):
 
         print("max wait times: ", maxWaitTimes)
 
-        state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes]
+        numPassengers = self.getNumPassengers()
 
-        return state
+        state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes] + [numPassengers]
+
+        print("state: ", state)
+        return np.array(state, dtype='float32')
 
     def oneHotEncode(self, list, item):
         return [1 if i == item else 0 for i in list]
@@ -231,17 +238,32 @@ class SumoEnv(gym.Env):
 
         return h
 
+    def getFollowerLeader(self):
+        if int(self.decisionBus[0][-1]) + 1 == len(self.buses):
+            follower = "bus.0"
+        else:
+            follower = "bus." + str(int(self.decisionBus[0][-1]) + 1)
+
+        if int(self.decisionBus[0][-1]) == 0:
+            leader = "bus." + str(len(self.buses) - 1)
+        else:
+            leader = "bus." + str(int(self.decisionBus[0][-1]) - 1)
+
+        return follower, leader
+
     def getHeadways(self):
         if len(self.buses) > 1:
-            if int(self.decisionBus[0][-1]) + 1 == len(self.buses):
-                follower = "bus.0"
-            else:
-                follower = "bus." + str(int(self.decisionBus[0][-1]) + 1)
+            # if int(self.decisionBus[0][-1]) + 1 == len(self.buses):
+            #     follower = "bus.0"
+            # else:
+            #     follower = "bus." + str(int(self.decisionBus[0][-1]) + 1)
 
-            if int(self.decisionBus[0][-1]) == 0:
-                leader = "bus." + str(len(self.buses) - 1)
-            else:
-                leader = "bus." + str(int(self.decisionBus[0][-1]) - 1)
+            # if int(self.decisionBus[0][-1]) == 0:
+            #     leader = "bus." + str(len(self.buses) - 1)
+            # else:
+            #     leader = "bus." + str(int(self.decisionBus[0][-1]) - 1)
+
+            follower, leader = self.getFollowerLeader()
 
             forwardHeadway = self.getHeadway(leader, self.decisionBus[0])
             backwardHeadway = self.getHeadway(self.decisionBus[0], follower)
@@ -271,6 +293,11 @@ class SumoEnv(gym.Env):
 
         return maxWaitTimes
 
+    def getNumPassengers(self):
+        follower, leader = self.getFollowerLeader()
+
+        numPassengers = [traci.vehicle.getPersonNumber(leader), traci.vehicle.getPersonNumber(self.decisionBus[0]), traci.vehicle.getPersonNumber(follower)]
+        return numPassengers
 
     
         

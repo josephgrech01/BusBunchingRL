@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-10-25 21:52:13 by Eclipse SUMO GUI Version 1.14.1
+<!-- generated on 2022-10-26 00:44:50 by Eclipse SUMO GUI Version 1.14.1
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
@@ -17,7 +17,7 @@
     </processing>
 
     <traci_server>
-        <remote-port value="64501"/>
+        <remote-port value="49309"/>
     </traci_server>
 
 </configuration>
@@ -54,3 +54,4 @@
         <ride waitingTime="26.00" vehicle="bus.0" depart="93.00" arrival="107.00" arrivalPos="20.00" duration="14.00" routeLength="93.31" timeLoss="6.49"/>
         <walk depart="107.00" departPos="20.00" arrival="117.00" arrivalPos="30.00" duration="10.00" routeLength="10.00" timeLoss="1.34" maxSpeed="1.15"/>
     </personinfo>
+</tripinfos>
