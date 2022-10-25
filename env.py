@@ -34,9 +34,6 @@ class SumoEnv(gym.Env):
 
         self.sumoCmd = [self._sumoBinary, "-c", "demo.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
 
-
-        self.action_space = Discrete(3)
-
         self.gymStep = 0
         self.busStops = ["stop1", "stop2"]
         print(self.busStops)
@@ -50,6 +47,13 @@ class SumoEnv(gym.Env):
         print(self.busStops)
 
         self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
+
+        self.action_space = Discrete(3)
+
+        low = np.array(np.zeros(len(self.busStops)) + np.zeros(len(self.buses)) +  [0, 0] +  np.zeros(len(self.busStops)) +  np.zeros(len(self.busStops)), dtype=float32)
+        high = np.array(np.ones(len(self.busStops)) + np.ones(len(self.buses)) + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops], dtype=float32)
+
+        self.observation_space = Box()
 
 
     def step(self, action):
