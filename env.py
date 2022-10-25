@@ -192,12 +192,21 @@ class SumoEnv(gym.Env):
 
     def computeState(self):
         stop = self.oneHotEncode(self.busStops, self.decisionBus[1])
+        bus = self.oneHotEncode(self.buses, self.decisionBus[0])
         headways = self.getHeadways()
         
-        state = [stop] + [headways]
-
         print("forward headway from decision {} = {}".format(self.decisionBus[0], headways[0]))
         print("backward headway from decision {} = {}".format(self.decisionBus[0], headways[1]))
+        
+        waitingPersons = self.getPersonsOnStops()
+
+        print("no of waiting persons: ", waitingPersons)
+
+        maxWaitTimes = self.getMaxWaitTimeOnStops()
+
+        print("max wait times: ", maxWaitTimes)
+
+        state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes]
 
         return state
 
@@ -236,6 +245,30 @@ class SumoEnv(gym.Env):
             return [forwardHeadway, backwardHeadway]
         else:
             return [0, 0]
+
+    def getPersonsOnStops(self):
+        # persons = []
+        # for stop in self.busStops:
+        #     persons.append(traci.busstop.getPersonCount(stop))
+        #     print(stop, ": ", traci.busstop.getPersonCount(stop))
+        persons = [traci.busstop.getPersonCount(stop) for stop in self.busStops]
+
+        return persons
+
+    def getMaxWaitTimeOnStops(self):
+        maxWaitTimes = []
+        for stop in self.busStops:
+            personsOnStop = traci.busstop.getPersonIDs(stop)
+            waitTimes = [traci.person.getWaitingTime(person) for person in personsOnStop]
+            if len(waitTimes) > 0:
+                maxWaitTimes.append(max(waitTimes))
+            else:
+                maxWaitTimes.append(0)
+
+        return maxWaitTimes
+
+
+    
         
 
 
