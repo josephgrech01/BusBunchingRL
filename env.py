@@ -28,11 +28,12 @@ import traci
 
 class SumoEnv(gym.Env):
     def __init__(self):
-        options = get_options()
-        if options.nogui:
-            self._sumoBinary = checkBinary('sumo')
-        else:
-            self._sumoBinary = checkBinary('sumo-gui')
+        # options = get_options()
+        # if options.nogui:
+        #     self._sumoBinary = checkBinary('sumo')
+        # else:
+        #     self._sumoBinary = checkBinary('sumo-gui')
+        self._sumoBinary = checkBinary('sumo')
 
         self.sumoCmd = [self._sumoBinary, "-c", "demo.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
 
@@ -111,11 +112,11 @@ class SumoEnv(gym.Env):
         #   GET NEW OBSERVATION AND CALCULATE REWARD  #
         ###############################################
 
-        # state = self.computeState()
-        state = {}
-        if self.gymStep == 5:
-            state = self.computeState()
-            print(state)
+        state = self.computeState()
+        # state = {}
+        # if self.gymStep == 5:
+        #     state = self.computeState()
+        #     print(state)
 
         reward = self.computeReward()
         print("REWARD: ", reward)
@@ -128,6 +129,8 @@ class SumoEnv(gym.Env):
             done = False
 
         info = {}
+
+        print("at the end")
 
         return state, reward, done, info
 
@@ -354,22 +357,22 @@ class SumoEnv(gym.Env):
 
 
 
-env = SumoEnv()
-episodes = 3
-for episode in range(1, episodes + 1):
+# env = SumoEnv()
+# episodes = 3
+# for episode in range(1, episodes + 1):
 
-    state = env.reset()
+#     state = env.reset()
 
-    done = False
-    score = 0
+#     done = False
+#     score = 0
 
-    while not done:
-        state, reward, done, info = env.step(10)
-        score += reward
+#     while not done:
+#         state, reward, done, info = env.step(10)
+#         score += reward
 
-    print("Episode: {} Score: {}".format(episode, score))
+#     print("Episode: {} Score: {}".format(episode, score))
 
-env.close()
+# env.close()
 
 
     
