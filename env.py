@@ -1,4 +1,5 @@
 import optparse
+from statistics import variance
 from cv2 import getNumberOfCPUs
 import gym
 from gym.spaces import Discrete, Box
@@ -54,10 +55,13 @@ class SumoEnv(gym.Env):
         self.action_space = Discrete(3)
 
         # DEPEND ON THE NETWORK
-        low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(len(self.buses))] +  [0, 0] +  [0 for _ in range(len(self.busStops))] +  [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
-        high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(len(self.buses))] + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops] + [4, 4, 4], dtype='float32')
+        # 2 instead of len(self.buses)
+        low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(2)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] +  [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
+        high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(2)] + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops] + [4, 4, 4], dtype='float32')
 
         self.observation_space = Box(low, high, dtype='float32')
+
+        self.reward_range = (float('-inf'), 0)
 
 
     def step(self, action):
@@ -112,7 +116,7 @@ class SumoEnv(gym.Env):
             state = self.computeState()
             print(state)
 
-        reward = 0
+        reward = self.computeReward()
 
         if self.gymStep > 10:
             print(self.gymStep)
@@ -219,7 +223,8 @@ class SumoEnv(gym.Env):
         state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes] + [numPassengers]
 
         print("state: ", state)
-        return np.array(state, dtype='float32')
+        # return np.array(state, dtype='float32')
+        return state
 
     def oneHotEncode(self, list, item):
         return [1 if i == item else 0 for i in list]
@@ -298,6 +303,41 @@ class SumoEnv(gym.Env):
 
         numPassengers = [traci.vehicle.getPersonNumber(leader), traci.vehicle.getPersonNumber(self.decisionBus[0]), traci.vehicle.getPersonNumber(follower)]
         return numPassengers
+
+
+    def computeReward(self):
+        reward = 0
+        headways = self.getHeadways()
+
+        reward = -1 * abs(headways[0] - headways[1])
+
+
+
+        return reward
+
+    def getWaitingTimeVariance(self):
+        meanSquares = []
+        for stop in self.busStops:
+            waitTime = 0
+            
+            totalPersons = traci.busstop.getPersonCount(stop)
+            if totalPersons > 0:
+                personsOnStop = traci.busstop.getPersonIDs(stop)
+                for person in personsOnStop:
+                    waitTime += (traci.person.getWaitingTime(person) ** 2)
+
+                meanSquares.append(waitTime/totalPersons)
+
+        average = sum(meanSquares)/len(meanSquares)
+
+        # sum = 0
+        # for ms in meanSquares:
+        #     sum += ((ms - average)**2)
+        deviations = [(ms - average) ** 2 for ms in meanSquares]
+
+        waitingTimeVariance = sum(deviations) / len(meanSquares) 
+
+        return waitingTimeVariance
 
     
         
