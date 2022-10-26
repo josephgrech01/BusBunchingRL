@@ -111,12 +111,14 @@ class SumoEnv(gym.Env):
         #   GET NEW OBSERVATION AND CALCULATE REWARD  #
         ###############################################
 
+        # state = self.computeState()
         state = {}
         if self.gymStep == 5:
             state = self.computeState()
             print(state)
 
         reward = self.computeReward()
+        print("REWARD: ", reward)
 
         if self.gymStep > 10:
             print(self.gymStep)
@@ -235,7 +237,7 @@ class SumoEnv(gym.Env):
         repeats = abs(int(traci.vehicle.getRoadID(leader)) - int(traci.vehicle.getRoadID(follower))) - 1
         
         for i in range(repeats):
-            print(type(str((int(traci.vehicle.getRoadID(follower))+i+1)%6)))
+            # print(type(str((int(traci.vehicle.getRoadID(follower))+i+1)%6)))
             h += traci.lane.getLength(str((int(traci.vehicle.getRoadID(follower))+i+1)%6)+"_0")
 
 
@@ -311,7 +313,9 @@ class SumoEnv(gym.Env):
 
         reward = -1 * abs(headways[0] - headways[1])
 
+        print("VARIANCE: ", self.getWaitingTimeVariance())
 
+        reward += -1 * self.getWaitingTimeVariance()
 
         return reward
 
@@ -328,14 +332,20 @@ class SumoEnv(gym.Env):
 
                 meanSquares.append(waitTime/totalPersons)
 
-        average = sum(meanSquares)/len(meanSquares)
+        if len(meanSquares) > 0:
+            average = sum(meanSquares)/len(meanSquares)
 
-        # sum = 0
-        # for ms in meanSquares:
-        #     sum += ((ms - average)**2)
-        deviations = [(ms - average) ** 2 for ms in meanSquares]
+            # sum = 0
+            # for ms in meanSquares:
+            #     sum += ((ms - average)**2)
+            deviations = [(ms - average) ** 2 for ms in meanSquares]
+            print("MEAN SQUARES: ", meanSquares)
+            print("DEVIATIONS: ", deviations)
 
-        waitingTimeVariance = sum(deviations) / len(meanSquares) 
+            waitingTimeVariance = sum(deviations) / len(meanSquares) 
+        else:
+            print("ZERO MEAN SQUARES")
+            waitingTimeVariance = 0
 
         return waitingTimeVariance
 
