@@ -57,10 +57,10 @@ class SumoEnv(gym.Env):
 
         # DEPEND ON THE NETWORK
         # 2 instead of len(self.buses)
-        low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(2)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] +  [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
-        high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(2)] + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops] + [4, 4, 4], dtype='float32')
+        self.low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(2)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] +  [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
+        self.high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(2)] + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops] + [4, 4, 4], dtype='float32')
 
-        self.observation_space = Box(low, high, dtype='float32')
+        self.observation_space = Box(self.low, self.high, dtype='float32')
 
         self.reward_range = (float('-inf'), 0)
 
@@ -113,6 +113,9 @@ class SumoEnv(gym.Env):
         ###############################################
 
         state = self.computeState()
+        print("observation state: ", self.observation_space)
+        print("low: ", self.low)
+        print("high: ", self.high)
         # state = {}
         # if self.gymStep == 5:
         #     state = self.computeState()
@@ -141,6 +144,12 @@ class SumoEnv(gym.Env):
         self.gymStep = 0
         self.stoppedBuses = [None, None]
         self.decisionBus = ["bus.0", "stop1"]
+
+        # sumo step until all buses are in the simulation
+        while len(traci.vehicle.getIDList()) < 2:
+            self.sumoStep()
+
+
         self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
     def close(self):
@@ -225,7 +234,8 @@ class SumoEnv(gym.Env):
 
         numPassengers = self.getNumPassengers()
 
-        state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes] + [numPassengers]
+        # state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes] + [numPassengers]
+        state = stop + bus + headways + waitingPersons + maxWaitTimes + numPassengers
 
         print("state: ", state)
         # return np.array(state, dtype='float32')
