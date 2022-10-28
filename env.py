@@ -15,39 +15,44 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("Please declare environment variable 'SUMO_HOME")
 
-def get_options():
-    opt_parser = optparse.OptionParser()
-    opt_parser.add_option("--nogui", action="store_true",
-                        default=False, help="run the commandline version of sumo")
-    options, args = opt_parser.parse_args()
-    return options
+# def get_options():
+#     opt_parser = optparse.OptionParser()
+#     opt_parser.add_option("--nogui", action="store_true",
+#                         default=False, help="run the commandline version of sumo")
+#     options, args = opt_parser.parse_args()
+    # return options
 
 from sumolib import checkBinary
 import traci
 
 
 class SumoEnv(gym.Env):
-    def __init__(self):
+    def __init__(self, gui=False, noWarnings=False):
         # options = get_options()
         # if options.nogui:
         #     self._sumoBinary = checkBinary('sumo')
         # else:
         #     self._sumoBinary = checkBinary('sumo-gui')
-        self._sumoBinary = checkBinary('sumo')
+        if gui:
+            self._sumoBinary = checkBinary('sumo-gui')
+        else:
+            self._sumoBinary = checkBinary('sumo')
 
         self.sumoCmd = [self._sumoBinary, "-c", "demo.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
+        if noWarnings:
+            self.sumoCmd.append("--no-warnings")
 
         self.gymStep = 0
-        self.busStops = ["stop1", "stop2"]
-        print(self.busStops)
+        self.busStops = ["stop1", "stop2", "stop3"]
+        # print(self.busStops)
        
-        self.stoppedBuses = [None, None]
+        self.stoppedBuses = [None, None, None, None] # depends on number of buses
         self.decisionBus = ["bus.0", "stop1"]
 
         traci.start(self.sumoCmd)
 
         self.busStops = list(traci.simulation.getBusStopIDList())
-        print(self.busStops)
+        # print(self.busStops)
 
         self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
@@ -57,8 +62,8 @@ class SumoEnv(gym.Env):
 
         # DEPEND ON THE NETWORK
         # 2 instead of len(self.buses)
-        self.low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(2)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] +  [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
-        self.high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(2)] + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops] + [4, 4, 4], dtype='float32')
+        self.low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(4)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] +  [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
+        self.high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(4)] + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops] + [4, 4, 4], dtype='float32')
 
         self.observation_space = Box(self.low, self.high, dtype='float32')
 
@@ -68,7 +73,7 @@ class SumoEnv(gym.Env):
     def step(self, action):
 
         self.gymStep += 1
-        print("new gym step ", self.gymStep)
+        # print("new gym step ", self.gymStep)
 
         self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
@@ -80,12 +85,16 @@ class SumoEnv(gym.Env):
         if traci.simulation.getTime() > 1: #the first bus leaves after the first simulation step
             if action == 0: # hold the bus
                 stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
-                traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=70)
+                traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=15)
                 print("holding {} at {}".format(self.decisionBus[0], stopData[0].stoppingPlaceID))
             elif action == 1: # skip the stop
                 stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
                 traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=0)
+                print("ACTION1")
             #else action == 2, no action taken and bus behaves normally
+            else:
+                # print("NO ACTION")
+                pass
 
 
         ########################################
@@ -113,19 +122,19 @@ class SumoEnv(gym.Env):
         ###############################################
 
         state = self.computeState()
-        print("observation state: ", self.observation_space)
-        print("low: ", self.low)
-        print("high: ", self.high)
+        # print("observation state: ", self.observation_space)
+        # print("low: ", self.low)
+        # print("high: ", self.high)
         # state = {}
         # if self.gymStep == 5:
         #     state = self.computeState()
         #     print(state)
 
         reward = self.computeReward()
-        print("REWARD: ", reward)
+        # print("REWARD: ", reward)
 
-        if self.gymStep > 10:
-            print(self.gymStep)
+        if self.gymStep > 50:
+            # print(self.gymStep)
             done = True
             
         else:
@@ -133,7 +142,7 @@ class SumoEnv(gym.Env):
 
         info = {}
 
-        print("at the end")
+        # print("at the end")
 
         return state, reward, done, info
 
@@ -142,22 +151,25 @@ class SumoEnv(gym.Env):
         traci.close()
         traci.start(self.sumoCmd)
         self.gymStep = 0
-        self.stoppedBuses = [None, None]
+        self.stoppedBuses = [None, None, None, None]
         self.decisionBus = ["bus.0", "stop1"]
 
         # sumo step until all buses are in the simulation
-        while len(traci.vehicle.getIDList()) < 2:
+        while len(traci.vehicle.getIDList()) < 4: #DEPENDS ON THE NUMBER OF BUSES
             self.sumoStep()
 
 
         self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
+
+        state = self.computeState()
+        return state
 
     def close(self):
         traci.close()
 
     def stoppedBuses(self):
         stopped = dict()
-        for stop in ["stop1", "stop2"]:
+        for stop in ["stop1", "stop2", "stop3"]:
             buses = traci.busstop.getVehicleIDs(stop)
             for bus in buses:
                 stopped[bus] = stop
@@ -169,7 +181,7 @@ class SumoEnv(gym.Env):
             if vehicle[0:3] == "bus":
                 if traci.vehicle.isAtBusStop(vehicle):
                     if self.stoppedBuses[int(vehicle[-1])] == None:
-                        print(vehicle)
+                        # print(vehicle)
                         #get stop id and update stoppedBuses list
                         for stop in self.busStops:
                             buses = traci.busstop.getVehicleIDs(stop)
@@ -221,23 +233,23 @@ class SumoEnv(gym.Env):
         bus = self.oneHotEncode(self.buses, self.decisionBus[0])
         headways = self.getHeadways()
         
-        print("forward headway from decision {} = {}".format(self.decisionBus[0], headways[0]))
-        print("backward headway from decision {} = {}".format(self.decisionBus[0], headways[1]))
+        # print("forward headway from decision {} = {}".format(self.decisionBus[0], headways[0]))
+        # print("backward headway from decision {} = {}".format(self.decisionBus[0], headways[1]))
         
         waitingPersons = self.getPersonsOnStops()
 
-        print("no of waiting persons: ", waitingPersons)
+        # print("no of waiting persons: ", waitingPersons)
 
         maxWaitTimes = self.getMaxWaitTimeOnStops()
 
-        print("max wait times: ", maxWaitTimes)
+        # print("max wait times: ", maxWaitTimes)
 
         numPassengers = self.getNumPassengers()
 
         # state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes] + [numPassengers]
         state = stop + bus + headways + waitingPersons + maxWaitTimes + numPassengers
 
-        print("state: ", state)
+        # print("state: ", state)
         # return np.array(state, dtype='float32')
         return state
 
@@ -268,6 +280,11 @@ class SumoEnv(gym.Env):
             leader = "bus." + str(len(self.buses) - 1)
         else:
             leader = "bus." + str(int(self.decisionBus[0][-1]) - 1)
+
+        # print("buses: ", self.buses)
+        # print("decision bus: ", self.decisionBus[0])
+        # print("follower: ", follower)
+        # print("leader: ", leader)
 
         return follower, leader
 
@@ -326,7 +343,7 @@ class SumoEnv(gym.Env):
 
         reward = -1 * abs(headways[0] - headways[1])
 
-        print("VARIANCE: ", self.getWaitingTimeVariance())
+        # print("VARIANCE: ", self.getWaitingTimeVariance())
 
         reward += -1 * self.getWaitingTimeVariance()
 
@@ -341,48 +358,22 @@ class SumoEnv(gym.Env):
             if totalPersons > 0:
                 personsOnStop = traci.busstop.getPersonIDs(stop)
                 for person in personsOnStop:
-                    waitTime += (traci.person.getWaitingTime(person) ** 2)
+                    waitTime += (traci.person.getWaitingTime(person)) #** 2)
 
                 meanSquares.append(waitTime/totalPersons)
 
         if len(meanSquares) > 0:
             average = sum(meanSquares)/len(meanSquares)
+            deviations = [((ms - average) ** 2) for ms in meanSquares]
+            waitingTimeVariance = sum(deviations) / len(meanSquares)
 
-            # sum = 0
-            # for ms in meanSquares:
-            #     sum += ((ms - average)**2)
-            deviations = [(ms - average) ** 2 for ms in meanSquares]
-            print("MEAN SQUARES: ", meanSquares)
-            print("DEVIATIONS: ", deviations)
-
-            waitingTimeVariance = sum(deviations) / len(meanSquares) 
+            # print("AVERAGE: ", average)
+            # print("LEN MEAN SQAURES: ", len(meanSquares))
+            # print("DEVIATIONS: ", deviations)
+            # print("MEAN SQUARES: ", meanSquares) 
         else:
-            print("ZERO MEAN SQUARES")
+            # print("ZERO MEAN SQUARES")
             waitingTimeVariance = 0
 
-        return waitingTimeVariance
-
-    
-        
-
-
-
-# env = SumoEnv()
-# episodes = 3
-# for episode in range(1, episodes + 1):
-
-#     state = env.reset()
-
-#     done = False
-#     score = 0
-
-#     while not done:
-#         state, reward, done, info = env.step(10)
-#         score += reward
-
-#     print("Episode: {} Score: {}".format(episode, score))
-
-# env.close()
-
-
-    
+        # print("WAIT VARIANCE", waitingTimeVariance)
+        return waitingTimeVariance    

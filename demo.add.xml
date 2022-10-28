@@ -1,10 +1,11 @@
 <additional>
-    <vType id="BUS" accel="2.6" decel="4.5" sigma="0" length="12" minGap="3" maxSpeed="70" color="1,1,0" guiShape="bus"/>
+    <vType id="BUS" vClass="bus" accel="2.6" decel="4.5" sigma="0" length="12" minGap="3" maxSpeed="70" color="1,1,0" guiShape="bus"/>
 
     <!-- <busStop id="stop1" lane="e1_1" startPos="15" endPos="20" lines="line1"/>
     <busStop id="stop2" lane="e4_1" startPos="15" endPos="20" lines="line1"/> -->
     <busStop id="stop1" lane="1_1" startPos="15" endPos="20" lines="line1"/>
     <busStop id="stop2" lane="4_1" startPos="15" endPos="20" lines="line1"/>
+    <busStop id="stop3" lane="5_1" startPos="15" endPos="20" lines="line1"/>
     
 
     <!-- <vehicle id="0" type="BUS" depart="0" color="1,1,0">
@@ -20,18 +21,43 @@
     </flow> -->
 
     <!-- <route id="busRoute" edges="e1 e2 e3 e4 e5 e6" repeat="5"> -->
-    <route id="busRoute" edges="1 2 3 4 5 0" repeat="5">
-        <stop busStop="stop1" duration="20"/>
-        <stop busStop="stop2" duration="20"/>
+    <route id="busRoute" edges="1 2 3 4 5 0" repeat="10000">
+        <stop busStop="stop1" duration="15"/>
+        <stop busStop="stop2" duration="15"/>
+        <stop busStop="stop3" duration="15"/>
     </route>
-    <flow id="bus" line="line1" route="busRoute" begin="0" end="31" period="30"/>
+    <flow id="bus" line="line1" route="busRoute" begin="0" end="16" period="5"/>
 
-    <personFlow id="persons" begin="0" end="400" period="10">
+    <personFlow id="persons" begin="0" end="10000" period="25">
         <!-- <walk from="e1" busStop="stop1"/> WAS A COMMENT BEFORE -->
         <walk from="1" busStop="stop1"/>
         <ride busStop="stop2" lines="line1"/>
         <!-- <walk to="e4" arrivalPos="30"/> WAS A COMMENT BEFORE -->
         <walk to="4" arrivalPos="30"/>
+    </personFlow>
+
+    <personFlow id="persons2" begin="0" end="10000" period="15">
+        <!-- <walk from="e1" busStop="stop1"/> WAS A COMMENT BEFORE -->
+        <walk from="4" busStop="stop2"/>
+        <ride busStop="stop1" lines="line1"/>
+        <!-- <walk to="e4" arrivalPos="30"/> WAS A COMMENT BEFORE -->
+        <walk to="1" arrivalPos="30"/>
+    </personFlow>
+
+    <personFlow id="persons3" begin="0" end="10000" period="15">
+        <!-- <walk from="e1" busStop="stop1"/> WAS A COMMENT BEFORE -->
+        <walk from="5" busStop="stop3"/>
+        <ride busStop="stop1" lines="line1"/>
+        <!-- <walk to="e4" arrivalPos="30"/> WAS A COMMENT BEFORE -->
+        <walk to="1" arrivalPos="30"/>
+    </personFlow>
+
+    <personFlow id="persons4" begin="0" end="10000" period="20">
+        <!-- <walk from="e1" busStop="stop1"/> WAS A COMMENT BEFORE -->
+        <walk from="1" busStop="stop1"/>
+        <ride busStop="stop3" lines="line1"/>
+        <!-- <walk to="e4" arrivalPos="30"/> WAS A COMMENT BEFORE -->
+        <walk to="5" arrivalPos="30"/>
     </personFlow>
 
     
