@@ -348,6 +348,7 @@ class SumoEnv(gym.Env):
         reward += -1 * self.getWaitingTimeVariance()
 
         return reward
+        
 
     def getWaitingTimeVariance(self):
         meanSquares = []
