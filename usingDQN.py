@@ -2,9 +2,9 @@ from stable_baselines3 import DQN
 
 from env import SumoEnv
 
-e = SumoEnv(gui=False, noWarnings=True)
+e = SumoEnv(gui=True, noWarnings=True)
 
-model = DQN.load("dqn_model")
+model = DQN.load("dqn_model_MaxSD")
 
 obs = e.reset()
 # print("obs: ", obs)

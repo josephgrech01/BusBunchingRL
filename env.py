@@ -216,11 +216,14 @@ class SumoEnv(gym.Env):
     def oneHotEncode(self, list, item):
         return [1 if i == item else 0 for i in list]
 
-    def getHeadway(self, leader, follower): # first edge id must be 0
+    def getHeadway(self, leader, follower): # first edge id must be 0, % depends on number of edges #gives forward headway of follower?
+        # forward headway is wrong
         h = traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower)
-    
+        print(traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower))
         repeats = abs(int(traci.vehicle.getRoadID(leader)) - int(traci.vehicle.getRoadID(follower))) - 1
-        
+        print("repeats: ", repeats)
+        print("leader road: ", int(traci.vehicle.getRoadID(leader)))
+        print("follower road: ", int(traci.vehicle.getRoadID(follower)))
         for i in range(repeats):
             h += traci.lane.getLength(str((int(traci.vehicle.getRoadID(follower))+i+1)%6)+"_0")
 
@@ -251,8 +254,16 @@ class SumoEnv(gym.Env):
         if len(self.buses) > 1:
             follower, leader = self.getFollowerLeader()
 
+            print("FOLLOWER: ", follower)
+            print("LEADER: ", leader)
+            print("BUS: ", self.decisionBus)
+            
+            
             forwardHeadway = self.getHeadway(leader, self.decisionBus[0])
+            print("FORWARD: ", forwardHeadway)
             backwardHeadway = self.getHeadway(self.decisionBus[0], follower)
+            print("BACKWARD: ", backwardHeadway)
+            
 
             return [forwardHeadway, backwardHeadway]
         else:
@@ -295,8 +306,6 @@ class SumoEnv(gym.Env):
         elif s == "sd":
             reward += -beta * self.getWaitStandardDevUsingMax()
 
-        print("REWARD: ", reward)
-
         return reward
         
 
@@ -336,8 +345,6 @@ class SumoEnv(gym.Env):
         average = sum(maximums)/len(maximums)
         deviations = [((m - average) ** 2) for m in maximums]
         variance = sum(deviations)/len(maximums)
-        print("GYM STEP: ", self.gymStep)
-        print("SD: ", math.sqrt(variance))
         self.sd = math.sqrt(variance)
         return math.sqrt(variance)
 
