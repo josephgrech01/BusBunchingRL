@@ -2,7 +2,7 @@ from stable_baselines3 import DQN
 
 from env import SumoEnv
 
-e = SumoEnv(gui=True)
+e = SumoEnv(gui=False, noWarnings=True)
 
 model = DQN.load("dqn_model")
 

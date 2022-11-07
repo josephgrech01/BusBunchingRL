@@ -1,10 +1,10 @@
-import numbers
 import gym
 from gym.spaces import Discrete, Box
 import os
 import sys
 import numpy as np
 import math
+import pandas as pd
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -53,6 +53,9 @@ class SumoEnv(gym.Env):
 
         self.reward_range = (float('-inf'), 0)
 
+        self.sd = 0
+        self.df = pd.DataFrame(columns=['SD', 'Reward', 'Action'])
+
 
     def step(self, action):
 
@@ -100,8 +103,12 @@ class SumoEnv(gym.Env):
 
         reward = self.computeReward("sd", 0.6, 0.4)
 
+        # self.df = self.df.append({'SD':self.sd, 'Reward':reward, 'Action':action}, ignore_index=True)
+        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'SD':self.sd, 'Reward':reward, 'Action':action}])], ignore_index=True)
+
         if self.gymStep > 50:
             done = True
+            self.df.to_csv('log.csv')
             
         else:
             done = False
@@ -117,6 +124,8 @@ class SumoEnv(gym.Env):
         self.gymStep = 0
         self.stoppedBuses = [None for _ in range(numBuses)] #[None, None, None, None]
         self.decisionBus = ["bus.0", "stop1"]
+
+        self.sd = 0
 
         # sumo step until all buses are in the simulation
         while len(traci.vehicle.getIDList()) < numBuses: #DEPENDS ON THE NUMBER OF BUSES
@@ -329,6 +338,7 @@ class SumoEnv(gym.Env):
         variance = sum(deviations)/len(maximums)
         print("GYM STEP: ", self.gymStep)
         print("SD: ", math.sqrt(variance))
+        self.sd = math.sqrt(variance)
         return math.sqrt(variance)
 
 
