@@ -4,6 +4,7 @@ from gym.spaces import Discrete, Box
 import os
 import sys
 import numpy as np
+import math
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -14,7 +15,7 @@ else:
 from sumolib import checkBinary
 import traci
 
-numBuses = 4
+numBuses = 2
 
 class SumoEnv(gym.Env):
     def __init__(self, gui=False, noWarnings=False):
@@ -45,6 +46,8 @@ class SumoEnv(gym.Env):
         # 2 instead of len(self.buses)
         self.low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(numBuses)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] +  [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
         self.high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(numBuses)] + [196, 196] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops] + [4, 4, 4], dtype='float32')
+        # [[1,0,0],[1,0]]
+
 
         self.observation_space = Box(self.low, self.high, dtype='float32')
 
@@ -65,11 +68,11 @@ class SumoEnv(gym.Env):
         if action == 0: # hold the bus
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
             traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=15)
-            print("holding {} at {}".format(self.decisionBus[0], stopData[0].stoppingPlaceID))
+            # print("holding {} at {}".format(self.decisionBus[0], stopData[0].stoppingPlaceID))
         elif action == 1: # skip the stop
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
             traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=0)
-            print("ACTION1")
+            # print("ACTION1")
         #else action == 2, no action taken and bus behaves normally
         else:
             # print("NO ACTION")
@@ -95,7 +98,7 @@ class SumoEnv(gym.Env):
 
         state = self.computeState()
 
-        reward = self.computeReward()
+        reward = self.computeReward("sd", 0.6, 0.4)
 
         if self.gymStep > 50:
             done = True
@@ -270,15 +273,20 @@ class SumoEnv(gym.Env):
         return numPassengers
 
 
-    def computeReward(self):
+    def computeReward(self, s, alpha, beta):
         reward = 0
         headways = self.getHeadways()
 
-        reward = -1 * abs(headways[0] - headways[1])
+        reward = -alpha * abs(headways[0] - headways[1])
 
         # print("VARIANCE: ", self.getWaitingTimeVariance())
 
-        reward += -1 * self.getWaitingTimeVariance()
+        if s == "variance":
+            reward += -beta * self.getWaitingTimeVariance()
+        elif s == "sd":
+            reward += -beta * self.getWaitStandardDevUsingMax()
+
+        print("REWARD: ", reward)
 
         return reward
         
@@ -293,6 +301,7 @@ class SumoEnv(gym.Env):
                 personsOnStop = traci.busstop.getPersonIDs(stop)
                 for person in personsOnStop:
                     waitTime += (traci.person.getWaitingTime(person)) #** 2)
+                    #maximum instead of total
 
                 meanSquares.append(waitTime/totalPersons)
 
@@ -311,3 +320,17 @@ class SumoEnv(gym.Env):
 
         # print("WAIT VARIANCE", waitingTimeVariance)
         return waitingTimeVariance    
+
+    def getWaitStandardDevUsingMax(self):
+        maximums = [m**2 for m in self.getMaxWaitTimeOnStops()]
+
+        average = sum(maximums)/len(maximums)
+        deviations = [((m - average) ** 2) for m in maximums]
+        variance = sum(deviations)/len(maximums)
+        print("GYM STEP: ", self.gymStep)
+        print("SD: ", math.sqrt(variance))
+        return math.sqrt(variance)
+
+
+
+        

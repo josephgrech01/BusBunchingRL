@@ -10,7 +10,7 @@ for episode in range(1, episodes + 1):
     score = 0
 
     while not done:
-        state, reward, done, info = env.step(10)
+        state, reward, done, info = env.step(2)
         score += reward
 
     print("Episode: {} Score: {}".format(episode, score))

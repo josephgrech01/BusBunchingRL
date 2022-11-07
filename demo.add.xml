@@ -26,7 +26,7 @@
         <stop busStop="stop2" duration="15"/>
         <stop busStop="stop3" duration="15"/>
     </route>
-    <flow id="bus" line="line1" route="busRoute" begin="0" end="16" period="5"/>
+    <flow id="bus" type="BUS" line="line1" route="busRoute" begin="0" end="6" period="5"/>
 
     <personFlow id="persons" begin="0" end="10000" period="25">
         <!-- <walk from="e1" busStop="stop1"/> WAS A COMMENT BEFORE -->
