@@ -62,7 +62,7 @@ class SumoEnv(gym.Env):
     def step(self, action):
 
         self.gymStep += 1
-        self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
+        # self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
 
         
 
@@ -103,7 +103,7 @@ class SumoEnv(gym.Env):
 
         state = self.computeState()
 
-        reward = self.computeReward("sd", 0.6, 0.4)
+        reward = self.computeReward("sd", 0.7, 0.3)
 
         # self.df = self.df.append({'SD':self.sd, 'Reward':reward, 'Action':action}, ignore_index=True)
         self.df = pd.concat([self.df, pd.DataFrame.from_records([{'SD':self.sd, 'Reward':reward, 'Action':action}])], ignore_index=True)
@@ -221,11 +221,11 @@ class SumoEnv(gym.Env):
     def getHeadway(self, leader, follower): # first edge id must be 0, % depends on number of edges #gives forward headway of follower?
         # forward headway is wrong
         h = traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower)
-        print(traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower))
+        # print(traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower))
         repeats = abs(int(traci.vehicle.getRoadID(leader)) - int(traci.vehicle.getRoadID(follower))) - 1
-        print("repeats: ", repeats)
-        print("leader road: ", int(traci.vehicle.getRoadID(leader)))
-        print("follower road: ", int(traci.vehicle.getRoadID(follower)))
+        # print("repeats: ", repeats)
+        # print("leader road: ", int(traci.vehicle.getRoadID(leader)))
+        # print("follower road: ", int(traci.vehicle.getRoadID(follower)))
         for i in range(repeats):
             h += traci.lane.getLength(str((int(traci.vehicle.getRoadID(follower))+i+1)%6)+"_0")
 
@@ -239,8 +239,8 @@ class SumoEnv(gym.Env):
         leaderRoad = int(traci.vehicle.getRoadID(leader))
         followerRoad = int(traci.vehicle.getRoadID(follower))
 
-        print("leader road: ", leaderRoad)
-        print("follower road: ", followerRoad)
+        # print("leader road: ", leaderRoad)
+        # print("follower road: ", followerRoad)
 
         if leaderRoad == followerRoad:
             if traci.vehicle.getLanePosition(leader) - traci.vehicle.getLanePosition(follower) > 0:
@@ -254,12 +254,12 @@ class SumoEnv(gym.Env):
         else:
             repeats = (numEdges - (abs(leaderRoad - followerRoad))) - 1
         
-        print("REPEATS: ", repeats)
+        # print("REPEATS: ", repeats)
         for i in range(repeats):
             lane = int(traci.vehicle.getRoadID(follower)) + i + 1
             if lane >= numEdges:
                 lane = lane % numEdges
-            print("ROAD ID: ", lane)
+            # print("ROAD ID: ", lane)
             h += traci.lane.getLength(str(lane)+"_0")
 
         h+= traci.vehicle.getLanePosition(leader)
@@ -294,17 +294,17 @@ class SumoEnv(gym.Env):
         if len(self.buses) > 1:
             follower, leader = self.getFollowerLeader()
 
-            print("FOLLOWER: ", follower)
-            print("LEADER: ", leader)
-            print("BUS: ", self.decisionBus)
+            # print("FOLLOWER: ", follower)
+            # print("LEADER: ", leader)
+            # print("BUS: ", self.decisionBus)
             
             
             #forwardHeadway = self.getHeadway(leader, self.decisionBus[0])
             forwardHeadway = self.getForwardHeadway(leader, self.decisionBus[0])
-            print("FORWARD: ", forwardHeadway)
+            # print("FORWARD: ", forwardHeadway)
             #backwardHeadway = self.getHeadway(self.decisionBus[0], follower)
             backwardHeadway = self.getForwardHeadway(self.decisionBus[0], follower)
-            print("BACKWARD: ", backwardHeadway)
+            # print("BACKWARD: ", backwardHeadway)
             
 
             return [forwardHeadway, backwardHeadway]
