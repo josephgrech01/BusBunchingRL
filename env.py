@@ -90,8 +90,12 @@ class SumoEnv(gym.Env):
 
         reachedStopBuses = self.reachedStop()
         while len(reachedStopBuses) < 1:
+            if traci.simulation.getTime() == 28:
+                print(reachedStopBuses)
             self.sumoStep()
             reachedStopBuses = self.reachedStop()
+            if traci.simulation.getTime() == 29:
+                print(reachedStopBuses)
 
         ###### UPDATE DECISION BUS #######
         self.decisionBus = [reachedStopBuses[0][0], reachedStopBuses[0][1]]
@@ -103,12 +107,14 @@ class SumoEnv(gym.Env):
 
         state = self.computeState()
 
-        reward = self.computeReward("sd", 0.7, 0.3)
+        reward = self.computeReward("sd", 0.6, 0.4)
 
         # self.df = self.df.append({'SD':self.sd, 'Reward':reward, 'Action':action}, ignore_index=True)
-        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'SD':self.sd, 'Reward':reward, 'Action':action}])], ignore_index=True)
+        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'SD':self.sd, 'Reward':reward, 'Action':action, 'Max Speed':traci.vehicle.getMaxSpeed("bus.0"), 'Speed': traci.vehicle.getSpeed("bus.0")}])], ignore_index=True)
 
-        if self.gymStep > 50:
+        if self.gymStep > 900:
+            print("DONE")
+            print(self.decisionBus)
             done = True
             self.df.to_csv('log.csv')
             
@@ -180,6 +186,7 @@ class SumoEnv(gym.Env):
                                 # get stop id and update stopped bused list
                                 self.stoppedBuses[int(vehicle[-1])] = stop
                                 reached.append([vehicle, stop])
+                                # break not sure
                         else:
                             if self.stoppedBuses[int(vehicle[-1])] != None:
                                 self.stoppedBuses[int(vehicle[-1])] = None
@@ -389,6 +396,9 @@ class SumoEnv(gym.Env):
         variance = sum(deviations)/len(maximums)
         self.sd = math.sqrt(variance)
         return math.sqrt(variance)
+
+    # def updatePersonStop(self):
+        
 
 
 
