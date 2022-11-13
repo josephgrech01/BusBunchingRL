@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-11-13 23:33:21 by Eclipse SUMO GUI Version 1.14.1
+<!-- generated on 2022-11-14 00:12:49 by Eclipse SUMO GUI Version 1.14.1
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
@@ -17,7 +17,7 @@
     </processing>
 
     <traci_server>
-        <remote-port value="50805"/>
+        <remote-port value="51207"/>
     </traci_server>
 
 </configuration>
@@ -26,29 +26,22 @@
 <tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tripinfo_file.xsd">
     <personinfo id="persons.0" depart="0.00" type="DEFAULT_PEDTYPE">
         <walk depart="0.00" departPos="0.00" arrival="14.00" arrivalPos="17.50" duration="14.00" routeLength="17.50" timeLoss="2.11" maxSpeed="1.47"/>
+        <ride waitingTime="5.00" vehicle="bus.0" depart="19.00" arrival="30.00" arrivalPos="20.00" duration="11.00" routeLength="107.07" timeLoss="3.29"/>
+        <walk depart="30.00" departPos="20.00" arrival="39.00" arrivalPos="30.00" duration="9.00" routeLength="10.00" timeLoss="1.80" maxSpeed="1.39"/>
     </personinfo>
     <personinfo id="persons.1" depart="25.00" type="DEFAULT_PEDTYPE">
         <walk depart="25.00" departPos="0.00" arrival="40.00" arrivalPos="17.50" duration="15.00" routeLength="17.50" timeLoss="1.57" maxSpeed="1.30"/>
+        <ride waitingTime="52.00" vehicle="bus.0" depart="92.00" arrival="103.00" arrivalPos="20.00" duration="11.00" routeLength="107.07" timeLoss="3.29"/>
+        <walk depart="103.00" departPos="20.00" arrival="111.00" arrivalPos="30.00" duration="8.00" routeLength="10.00" timeLoss="0.80" maxSpeed="1.39"/>
     </personinfo>
     <personinfo id="persons.2" depart="50.00" type="DEFAULT_PEDTYPE">
         <walk depart="50.00" departPos="0.00" arrival="64.00" arrivalPos="17.50" duration="14.00" routeLength="17.50" timeLoss="1.53" maxSpeed="1.40"/>
+        <ride waitingTime="28.00" vehicle="bus.0" depart="92.00" arrival="103.00" arrivalPos="20.00" duration="11.00" routeLength="107.07" timeLoss="3.29"/>
+        <walk depart="103.00" departPos="20.00" arrival="112.00" arrivalPos="30.00" duration="9.00" routeLength="10.00" timeLoss="1.80" maxSpeed="1.39"/>
     </personinfo>
     <personinfo id="persons.3" depart="75.00" type="DEFAULT_PEDTYPE">
         <walk depart="75.00" departPos="0.00" arrival="88.00" arrivalPos="17.50" duration="13.00" routeLength="17.50" timeLoss="1.36" maxSpeed="1.50"/>
-    </personinfo>
-    <personinfo id="persons.4" depart="100.00" type="DEFAULT_PEDTYPE">
-        <walk depart="100.00" departPos="0.00" arrival="114.00" arrivalPos="17.50" duration="14.00" routeLength="17.50" timeLoss="1.77" maxSpeed="1.43"/>
-    </personinfo>
-    <personinfo id="persons.5" depart="125.00" type="DEFAULT_PEDTYPE">
-        <walk depart="125.00" departPos="0.00" arrival="142.00" arrivalPos="17.50" duration="17.00" routeLength="17.50" timeLoss="1.84" maxSpeed="1.15"/>
-    </personinfo>
-    <personinfo id="persons.6" depart="150.00" type="DEFAULT_PEDTYPE">
-        <walk depart="150.00" departPos="0.00" arrival="164.00" arrivalPos="17.50" duration="14.00" routeLength="17.50" timeLoss="1.95" maxSpeed="1.45"/>
-    </personinfo>
-    <personinfo id="persons.7" depart="175.00" type="DEFAULT_PEDTYPE">
-        <walk depart="175.00" departPos="0.00" arrival="191.00" arrivalPos="17.50" duration="16.00" routeLength="17.50" timeLoss="1.78" maxSpeed="1.23"/>
-    </personinfo>
-    <personinfo id="persons.8" depart="200.00" type="DEFAULT_PEDTYPE">
-        <walk depart="200.00" departPos="0.00" arrival="215.00" arrivalPos="17.50" duration="15.00" routeLength="17.50" timeLoss="1.57" maxSpeed="1.30"/>
+        <ride waitingTime="4.00" vehicle="bus.0" depart="92.00" arrival="103.00" arrivalPos="20.00" duration="11.00" routeLength="107.07" timeLoss="3.29"/>
+        <walk depart="103.00" departPos="20.00" arrival="113.00" arrivalPos="30.00" duration="10.00" routeLength="10.00" timeLoss="2.80" maxSpeed="1.39"/>
     </personinfo>
 </tripinfos>

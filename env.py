@@ -41,6 +41,8 @@ class SumoEnv(gym.Env):
         # self.busCapacity = traci.vehicle.getPersonCapacity(self.decisionBus[0])
         self.busCapacity = 85
 
+        self.personsWithStop = []
+
         self.action_space = Discrete(3)
 
         # DEPEND ON THE NETWORK
@@ -132,6 +134,7 @@ class SumoEnv(gym.Env):
         self.gymStep = 0
         self.stoppedBuses = [None for _ in range(numBuses)] #[None, None, None, None]
         self.decisionBus = ["bus.0", "stop1"]
+        self.personsWithStop = []
 
         self.sd = 0
 
@@ -196,6 +199,7 @@ class SumoEnv(gym.Env):
 
     def sumoStep(self):
         traci.simulationStep()
+        self.updatePersonStop()
 
     def computeState(self):
         stop = self.oneHotEncode(self.busStops, self.decisionBus[1])
@@ -397,8 +401,15 @@ class SumoEnv(gym.Env):
         self.sd = math.sqrt(variance)
         return math.sqrt(variance)
 
-    # def updatePersonStop(self):
-        
+    def updatePersonStop(self):
+        persons = traci.person.getIDList()
+        personsWithoutStop = [person for person in persons if person not in self.personsWithStop]
+        for person in personsWithoutStop:
+            traci.person.appendDrivingStage(person, "4", "line1", stopID="stop2")
+            traci.person.appendWalkingStage(person, ["4"], 30)
+            self.personsWithStop.append(person)
+            print("PERSON {} TO STOP 1\n".format(person))
+
 
 
 
