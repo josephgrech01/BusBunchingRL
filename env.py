@@ -5,6 +5,7 @@ import sys
 import numpy as np
 import math
 import pandas as pd
+import random
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -41,7 +42,8 @@ class SumoEnv(gym.Env):
         # self.busCapacity = traci.vehicle.getPersonCapacity(self.decisionBus[0])
         self.busCapacity = 85
 
-        self.personsWithStop = []
+        # self.personsWithStop = []
+        self.personsWithStop = dict()
 
         self.action_space = Discrete(3)
 
@@ -65,7 +67,7 @@ class SumoEnv(gym.Env):
 
         self.gymStep += 1
         # self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
-
+        # self.updatePersonStop()
         
 
         #####################
@@ -114,9 +116,10 @@ class SumoEnv(gym.Env):
         # self.df = self.df.append({'SD':self.sd, 'Reward':reward, 'Action':action}, ignore_index=True)
         self.df = pd.concat([self.df, pd.DataFrame.from_records([{'SD':self.sd, 'Reward':reward, 'Action':action, 'Max Speed':traci.vehicle.getMaxSpeed("bus.0"), 'Speed': traci.vehicle.getSpeed("bus.0")}])], ignore_index=True)
 
-        if self.gymStep > 900:
+        if self.gymStep > 50:
             print("DONE")
             print(self.decisionBus)
+            print("PERSONS WITH STOP: ", self.personsWithStop)
             done = True
             self.df.to_csv('log.csv')
             
@@ -134,7 +137,8 @@ class SumoEnv(gym.Env):
         self.gymStep = 0
         self.stoppedBuses = [None for _ in range(numBuses)] #[None, None, None, None]
         self.decisionBus = ["bus.0", "stop1"]
-        self.personsWithStop = []
+        # self.personsWithStop = []
+        self.personsWithStop = dict()
 
         self.sd = 0
 
@@ -403,12 +407,19 @@ class SumoEnv(gym.Env):
 
     def updatePersonStop(self):
         persons = traci.person.getIDList()
+        # personsWithoutStop = [person for person in persons if person not in self.personsWithStop]
         personsWithoutStop = [person for person in persons if person not in self.personsWithStop]
         for person in personsWithoutStop:
-            traci.person.appendDrivingStage(person, "4", "line1", stopID="stop2")
-            traci.person.appendWalkingStage(person, ["4"], 30)
-            self.personsWithStop.append(person)
-            print("PERSON {} TO STOP 1\n".format(person))
+            num = random.randint(4,5) #needs to be fixed when using the proper circuit
+            if num==4:
+                s = "stop2"
+            else:
+                s = "stop3"
+            traci.person.appendDrivingStage(person, str(num), "line1", stopID=s)
+            traci.person.appendWalkingStage(person, [str(num)], 30)
+            # self.personsWithStop.append(person)
+            self.personsWithStop[person] = s
+            print("PERSON {} TO STOP {}\n".format(person, s))
 
 
 
