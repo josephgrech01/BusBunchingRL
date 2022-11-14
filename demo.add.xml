@@ -30,7 +30,7 @@
     </route>
     <flow id="bus" type="BUS" line="line1" route="busRoute" begin="0" end="6" period="5"/>
 
-    <personFlow id="persons" begin="0" end="10000" period="25">
+    <personFlow id="persons" begin="0" end="10000" period="5"><!--"25">-->
         <!-- <walk from="e1" busStop="stop1"/> WAS A COMMENT BEFORE -->
         <walk from="1" busStop="stop1"/>
         <!-- <ride busStop="stop2" lines="line1"/> -->

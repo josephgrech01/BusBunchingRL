@@ -82,6 +82,24 @@ class SumoEnv(gym.Env):
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
             traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=(self.decisionBus[2]+15))
             #UPDATE PEOPLE ON BUS
+            personsOnStop = traci.busstop.getPersonIDs(self.decisionBus[1])
+            # for key, value in self.personsWithStop:
+            #boarding
+            for person in personsOnStop:    
+                self.personsWithStop[person][1] = self.decisionBus[0]
+                self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] += 1
+
+
+            #alighting
+            personsOnBus = traci.vehicle.getPersonIDList(self.decisionBus[0])
+            for person in personsOnBus:
+                if self.personsWithStop[person][0] == self.decisionBus[1]:
+                    self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] -= 1
+
+            
+
+            # self.peopleOnBuses
+
             # print("holding {} at {}".format(self.decisionBus[0], stopData[0].stoppingPlaceID))
         elif action == 1: # skip the stop
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
@@ -92,6 +110,22 @@ class SumoEnv(gym.Env):
             # print("NO ACTION")
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
             traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=self.decisionBus[2])
+            print("DWELL TIME: ", self.decisionBus[2])
+
+            #UPDATE PEOPLE ON BUS
+            personsOnStop = traci.busstop.getPersonIDs(self.decisionBus[1])
+            # for key, value in self.personsWithStop:
+            #boarding
+            for person in personsOnStop:    
+                self.personsWithStop[person][1] = self.decisionBus[0]
+                self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] += 1
+
+
+            #alighting
+            personsOnBus = traci.vehicle.getPersonIDList(self.decisionBus[0])
+            for person in personsOnBus:
+                if self.personsWithStop[person][0] == self.decisionBus[1]:
+                    self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] -= 1
 
 
         ########################################
@@ -212,6 +246,8 @@ class SumoEnv(gym.Env):
     def sumoStep(self):
         traci.simulationStep()
         self.updatePersonStop()
+        if len([bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]) == numBuses:
+            self.updatePassengersOnBoard()
 
     def computeState(self):
         stop = self.oneHotEncode(self.busStops, self.decisionBus[1])
@@ -426,8 +462,8 @@ class SumoEnv(gym.Env):
             traci.person.appendDrivingStage(person, str(num), "line1", stopID=s)
             traci.person.appendWalkingStage(person, [str(num)], 30)
             # self.personsWithStop.append(person)
-            self.personsWithStop[person] = s
-            print("PERSON {} TO STOP {}\n".format(person, s))
+            self.personsWithStop[person] = [s, None]
+            
 
     def getStopTime(self, bus, stop):
         boarding = traci.busstop.getPersonCount(stop)
@@ -435,9 +471,22 @@ class SumoEnv(gym.Env):
         # alighting = sum([1 for key, value i])
         # print("bus[-1] {} (stop-1) {}".format(int(bus[-1]), (stop-1)))
         alighting = self.peopleOnBuses[int(bus[-1])][int(stop[-1])-1]
+
+        print("BOARDING: {} ALIGHTING: {}".format(boarding, alighting))
+        print("PEOPLE ON BUS: {}".format(self.peopleOnBuses))
         #work out dwell time
-        time = max(math.ceil(boarding/3), math.ceil(alighting/1.8)) #boarding and alighting rate
+        time = max(math.ceil(boarding/3), math.ceil(abs(alighting)/1.8)) #boarding and alighting rate #abs is there just in case people on bus falls below zero if a person should've left a bus but the simulation did not give them time
         return time
+
+    def updatePassengersOnBoard(self): #For any passengers which board the bus during holding time and thus were not know beforehand that they would board
+        for bus in self.buses:
+            for person in traci.vehicle.getPersonIDList(bus):
+                if self.personsWithStop[person][1] == None:
+                    self.personsWithStop[person][1] == bus
+                    self.peopleOnBuses[int(bus[-1])][int(self.personsWithStop[person][0][-1])-1] += 1
+
+        #not sure if i need to update any persons alighting here as well
+        #If multiple buses stop at same time and this causes problems, remove alighting time altogether
 
 
 
