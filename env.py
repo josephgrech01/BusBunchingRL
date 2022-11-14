@@ -32,7 +32,7 @@ class SumoEnv(gym.Env):
         self.gymStep = 0
        
         self.stoppedBuses = [None for _ in range(numBuses)] #[None, None, None, None] # depends on number of buses
-        self.decisionBus = ["bus.0", "stop1"]
+        self.decisionBus = ["bus.0", "stop1", 0]
 
         traci.start(self.sumoCmd)
 
@@ -44,6 +44,10 @@ class SumoEnv(gym.Env):
 
         # self.personsWithStop = []
         self.personsWithStop = dict()
+
+        # self.peopleOnBuses = [[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
+        self.peopleOnBuses = [[0]*12, [0]*12, [0]*12, [0]*12, [0]*12, [0]*12] # stores the people on each bus which will stop at each stop
+        print("PEOPLE ON BUSES: ", self.peopleOnBuses)
 
         self.action_space = Discrete(3)
 
@@ -76,7 +80,8 @@ class SumoEnv(gym.Env):
         
         if action == 0: # hold the bus
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
-            traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=15)
+            traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=(self.decisionBus[2]+15))
+            #UPDATE PEOPLE ON BUS
             # print("holding {} at {}".format(self.decisionBus[0], stopData[0].stoppingPlaceID))
         elif action == 1: # skip the stop
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
@@ -85,7 +90,8 @@ class SumoEnv(gym.Env):
         #else action == 2, no action taken and bus behaves normally
         else:
             # print("NO ACTION")
-            pass
+            stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
+            traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=self.decisionBus[2])
 
 
         ########################################
@@ -102,13 +108,14 @@ class SumoEnv(gym.Env):
                 print(reachedStopBuses)
 
         ###### UPDATE DECISION BUS #######
-        self.decisionBus = [reachedStopBuses[0][0], reachedStopBuses[0][1]]
+        self.decisionBus = [reachedStopBuses[0][0], reachedStopBuses[0][1], self.getStopTime(reachedStopBuses[0][0], reachedStopBuses[0][1])]
 
 
         ###############################################
         #   GET NEW OBSERVATION AND CALCULATE REWARD  #
         ###############################################
 
+        # ADD DWELL TIME TO STATE!!!!
         state = self.computeState()
 
         reward = self.computeReward("sd", 0.6, 0.4)
@@ -136,9 +143,10 @@ class SumoEnv(gym.Env):
         traci.start(self.sumoCmd)
         self.gymStep = 0
         self.stoppedBuses = [None for _ in range(numBuses)] #[None, None, None, None]
-        self.decisionBus = ["bus.0", "stop1"]
+        self.decisionBus = ["bus.0", "stop1", 0]
         # self.personsWithStop = []
         self.personsWithStop = dict()
+        self.peopleOnBuses = [[0]*12, [0]*12, [0]*12, [0]*12, [0]*12, [0]*12]
 
         self.sd = 0
 
@@ -420,6 +428,17 @@ class SumoEnv(gym.Env):
             # self.personsWithStop.append(person)
             self.personsWithStop[person] = s
             print("PERSON {} TO STOP {}\n".format(person, s))
+
+    def getStopTime(self, bus, stop):
+        boarding = traci.busstop.getPersonCount(stop)
+        #update people on bus - NOT HERE, NEED TO BE SURE THAT IT WILL ACTUALLY STOP
+        # alighting = sum([1 for key, value i])
+        # print("bus[-1] {} (stop-1) {}".format(int(bus[-1]), (stop-1)))
+        alighting = self.peopleOnBuses[int(bus[-1])][int(stop[-1])-1]
+        #work out dwell time
+        time = max(math.ceil(boarding/3), math.ceil(alighting/1.8)) #boarding and alighting rate
+        return time
+
 
 
 
