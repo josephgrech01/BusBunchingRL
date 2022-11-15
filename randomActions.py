@@ -1,4 +1,5 @@
 from env import SumoEnv
+import random
 
 env = SumoEnv(gui=True)
 episodes = 3
@@ -10,7 +11,8 @@ for episode in range(1, episodes + 1):
     score = 0
 
     while not done:
-        state, reward, done, info = env.step(2)
+        action = random.randint(0,2)
+        state, reward, done, info = env.step(action)
         score += reward
 
     print("Episode: {} Score: {}".format(episode, score))

@@ -47,7 +47,7 @@ class SumoEnv(gym.Env):
 
         # self.peopleOnBuses = [[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
         self.peopleOnBuses = [[0]*12, [0]*12, [0]*12, [0]*12, [0]*12, [0]*12] # stores the people on each bus which will stop at each stop
-        print("PEOPLE ON BUSES: ", self.peopleOnBuses)
+        print("PEOPLE ON BUSES: ", self.peopleOnBuses[0:2])
 
         self.action_space = Discrete(3)
 
@@ -125,6 +125,7 @@ class SumoEnv(gym.Env):
             personsOnBus = traci.vehicle.getPersonIDList(self.decisionBus[0])
             for person in personsOnBus:
                 if self.personsWithStop[person][0] == self.decisionBus[1]:
+                    print("DECREMENTING")
                     self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] -= 1
 
 
@@ -473,7 +474,7 @@ class SumoEnv(gym.Env):
         alighting = self.peopleOnBuses[int(bus[-1])][int(stop[-1])-1]
 
         print("BOARDING: {} ALIGHTING: {}".format(boarding, alighting))
-        print("PEOPLE ON BUS: {}".format(self.peopleOnBuses))
+        print("PEOPLE ON BUS: {}".format(self.peopleOnBuses[0:2]))
         #work out dwell time
         time = max(math.ceil(boarding/3), math.ceil(abs(alighting)/1.8)) #boarding and alighting rate #abs is there just in case people on bus falls below zero if a person should've left a bus but the simulation did not give them time
         return time
@@ -482,8 +483,9 @@ class SumoEnv(gym.Env):
         for bus in self.buses:
             for person in traci.vehicle.getPersonIDList(bus):
                 if self.personsWithStop[person][1] == None:
-                    self.personsWithStop[person][1] == bus
+                    self.personsWithStop[person][1] = bus #WAS == BEFORE (A MISTAKE)
                     self.peopleOnBuses[int(bus[-1])][int(self.personsWithStop[person][0][-1])-1] += 1
+                    print("INCREMENTED {} STOP {}".format(bus, self.personsWithStop[person][0]))
 
         #not sure if i need to update any persons alighting here as well
         #If multiple buses stop at same time and this causes problems, remove alighting time altogether
