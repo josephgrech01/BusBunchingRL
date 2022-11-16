@@ -41,6 +41,33 @@
     <person id="foo" depart="0" departPos="14" color="1,0,1">
         <walk from="1" busStop="stop1"/>
     </person>
+    <person id="foo2" depart="0" departPos="14" color="0,1,1">
+        <walk from="1" busStop="stop1"/>
+    </person>
+    <person id="foo3" depart="0" departPos="14" color="0,1,1">
+        <walk from="1" busStop="stop1"/>
+    </person>
+    <person id="foo4" depart="0" departPos="14" color="0,1,1">
+        <walk from="1" busStop="stop1"/>
+    </person>
+    <person id="foo5" depart="0" departPos="14" color="0,1,1">
+        <walk from="1" busStop="stop1"/>
+    </person>
+    <person id="foo6" depart="0" departPos="14" color="0,1,1">
+        <walk from="1" busStop="stop1"/>
+    </person>
+    <person id="foo7" depart="0" departPos="14" color="0,1,1">
+        <walk from="1" busStop="stop1"/>
+    </person>
+    <person id="foo8" depart="0" departPos="14" color="0,1,1">
+        <walk from="1" busStop="stop1"/>
+    </person>
+    <person id="foo9" depart="0" departPos="14" color="0,1,1">
+        <walk from="1" busStop="stop1"/>
+    </person>
+    <person id="foo10" depart="0" departPos="14" color="0,1,1">
+        <walk from="1" busStop="stop1"/>
+    </person>
 
     <!-- <personFlow id="persons2" begin="0" end="10000" period="15"> -->
         <!-- <walk from="e1" busStop="stop1"/> WAS A COMMENT BEFORE -->
