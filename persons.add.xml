@@ -384,7 +384,42 @@
 
 
 
-    <personFlow id="pStop1" begin="0" end="10000" departPos="200" period="exp(0.067)">
+    <personFlow id="pStop1" begin="0" end="10000" departPos="200" period="exp(0.0083)">
         <walk from="0" busStop="stop1"/>
     </personFlow>
+    <personFlow id="pStop2" begin="0" end="10000" departPos="200" period="exp(0.0083)">
+        <walk from="1" busStop="stop2"/>
+    </personFlow>
+    <personFlow id="pStop3" begin="0" end="10000" departPos="200" period="exp(0.0133)">
+        <walk from="2" busStop="stop3"/>
+    </personFlow>
+    <personFlow id="pStop4" begin="0" end="10000" departPos="200" period="exp(0.0167)">
+        <walk from="3" busStop="stop4"/>
+    </personFlow>
+    <personFlow id="pStop5" begin="0" end="10000" departPos="200" period="exp(0.0167)">
+        <walk from="4" busStop="stop5"/>
+    </personFlow>
+    <personFlow id="pStop6" begin="0" end="10000" departPos="200" period="exp(0.05)">
+        <walk from="5" busStop="stop6"/>
+    </personFlow>
+    <personFlow id="pStop7" begin="0" end="10000" departPos="200" period="exp(0.0667)">
+        <walk from="6" busStop="stop7"/>
+    </personFlow>
+    <personFlow id="pStop8" begin="0" end="10000" departPos="200" period="exp(0.0333)">
+        <walk from="7" busStop="stop8"/>
+    </personFlow>
+    <personFlow id="pStop9" begin="0" end="10000" departPos="200" period="exp(0.0167)">
+        <walk from="8" busStop="stop9"/>
+    </personFlow>
+    <personFlow id="pStop10" begin="0" end="10000" departPos="200" period="exp(0.0108)">
+        <walk from="9" busStop="stop10"/>
+    </personFlow>
+    <personFlow id="pStop11" begin="0" end="10000" departPos="200" period="exp(0.0092)">
+        <walk from="10" busStop="stop11"/>
+    </personFlow>
+    <personFlow id="pStop12" begin="0" end="10000" departPos="200" period="exp(0.0083)">
+        <walk from="11" busStop="stop12"/>
+    </personFlow>
+
+
 </additional>

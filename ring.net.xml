@@ -38,52 +38,52 @@
     <location netOffset="0.00,0.00" convBoundary="0.00,0.00,1330.00,1330.00" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
 
     <edge id="0" from="J0" to="J1" priority="-1">
-        <lane id="0_0" index="0" allow="pedestrian" speed="6.67" length="443.33" width="2.00" shape="0.00,-4.20 443.33,-4.20"/>
-        <lane id="0_1" index="1" disallow="pedestrian" speed="6.67" length="443.33" shape="0.00,-1.60 443.33,-1.60"/>
+        <lane id="0_0" index="0" allow="pedestrian" speed="1.85" length="443.33" width="2.00" shape="0.00,-4.20 443.33,-4.20"/>
+        <lane id="0_1" index="1" disallow="pedestrian" speed="1.85" length="443.33" shape="0.00,-1.60 443.33,-1.60"/>
     </edge>
     <edge id="1" from="J1" to="J2" priority="-1">
-        <lane id="1_0" index="0" allow="pedestrian" speed="6.67" length="443.34" width="2.00" shape="443.33,-4.20 886.67,-4.20"/>
-        <lane id="1_1" index="1" disallow="pedestrian" speed="6.67" length="443.34" shape="443.33,-1.60 886.67,-1.60"/>
+        <lane id="1_0" index="0" allow="pedestrian" speed="1.85" length="443.34" width="2.00" shape="443.33,-4.20 886.67,-4.20"/>
+        <lane id="1_1" index="1" disallow="pedestrian" speed="1.85" length="443.34" shape="443.33,-1.60 886.67,-1.60"/>
     </edge>
     <edge id="10" from="J10" to="J11" priority="-1">
-        <lane id="10_0" index="0" allow="pedestrian" speed="6.67" length="443.34" width="2.00" shape="-4.20,886.67 -4.20,443.33"/>
-        <lane id="10_1" index="1" disallow="pedestrian" speed="6.67" length="443.34" shape="-1.60,886.67 -1.60,443.33"/>
+        <lane id="10_0" index="0" allow="pedestrian" speed="1.85" length="443.34" width="2.00" shape="-4.20,886.67 -4.20,443.33"/>
+        <lane id="10_1" index="1" disallow="pedestrian" speed="1.85" length="443.34" shape="-1.60,886.67 -1.60,443.33"/>
     </edge>
     <edge id="11" from="J11" to="J0" priority="-1">
-        <lane id="11_0" index="0" allow="pedestrian" speed="6.67" length="443.33" width="2.00" shape="-4.20,443.33 -4.20,0.00"/>
-        <lane id="11_1" index="1" disallow="pedestrian" speed="6.67" length="443.33" shape="-1.60,443.33 -1.60,0.00"/>
+        <lane id="11_0" index="0" allow="pedestrian" speed="1.85" length="443.33" width="2.00" shape="-4.20,443.33 -4.20,0.00"/>
+        <lane id="11_1" index="1" disallow="pedestrian" speed="1.85" length="443.33" shape="-1.60,443.33 -1.60,0.00"/>
     </edge>
     <edge id="2" from="J2" to="J3" priority="-1">
-        <lane id="2_0" index="0" allow="pedestrian" speed="6.67" length="443.33" width="2.00" shape="886.67,-4.20 1330.00,-4.20"/>
-        <lane id="2_1" index="1" disallow="pedestrian" speed="6.67" length="443.33" shape="886.67,-1.60 1330.00,-1.60"/>
+        <lane id="2_0" index="0" allow="pedestrian" speed="1.85" length="443.33" width="2.00" shape="886.67,-4.20 1330.00,-4.20"/>
+        <lane id="2_1" index="1" disallow="pedestrian" speed="1.85" length="443.33" shape="886.67,-1.60 1330.00,-1.60"/>
     </edge>
     <edge id="3" from="J3" to="J4" priority="-1">
-        <lane id="3_0" index="0" allow="pedestrian" speed="6.67" length="443.33" width="2.00" shape="1334.20,0.00 1334.20,443.33"/>
-        <lane id="3_1" index="1" disallow="pedestrian" speed="6.67" length="443.33" shape="1331.60,0.00 1331.60,443.33"/>
+        <lane id="3_0" index="0" allow="pedestrian" speed="1.85" length="443.33" width="2.00" shape="1334.20,0.00 1334.20,443.33"/>
+        <lane id="3_1" index="1" disallow="pedestrian" speed="1.85" length="443.33" shape="1331.60,0.00 1331.60,443.33"/>
     </edge>
     <edge id="4" from="J4" to="J5" priority="-1">
-        <lane id="4_0" index="0" allow="pedestrian" speed="6.67" length="443.34" width="2.00" shape="1334.20,443.33 1334.20,886.67"/>
-        <lane id="4_1" index="1" disallow="pedestrian" speed="6.67" length="443.34" shape="1331.60,443.33 1331.60,886.67"/>
+        <lane id="4_0" index="0" allow="pedestrian" speed="1.85" length="443.34" width="2.00" shape="1334.20,443.33 1334.20,886.67"/>
+        <lane id="4_1" index="1" disallow="pedestrian" speed="1.85" length="443.34" shape="1331.60,443.33 1331.60,886.67"/>
     </edge>
     <edge id="5" from="J5" to="J6" priority="-1">
-        <lane id="5_0" index="0" allow="pedestrian" speed="6.67" length="443.33" width="2.00" shape="1334.20,886.67 1334.20,1330.00"/>
-        <lane id="5_1" index="1" disallow="pedestrian" speed="6.67" length="443.33" shape="1331.60,886.67 1331.60,1330.00"/>
+        <lane id="5_0" index="0" allow="pedestrian" speed="1.85" length="443.33" width="2.00" shape="1334.20,886.67 1334.20,1330.00"/>
+        <lane id="5_1" index="1" disallow="pedestrian" speed="1.85" length="443.33" shape="1331.60,886.67 1331.60,1330.00"/>
     </edge>
     <edge id="6" from="J6" to="J7" priority="-1">
-        <lane id="6_0" index="0" allow="pedestrian" speed="6.67" length="443.33" width="2.00" shape="1330.00,1334.20 886.67,1334.20"/>
-        <lane id="6_1" index="1" disallow="pedestrian" speed="6.67" length="443.33" shape="1330.00,1331.60 886.67,1331.60"/>
+        <lane id="6_0" index="0" allow="pedestrian" speed="1.85" length="443.33" width="2.00" shape="1330.00,1334.20 886.67,1334.20"/>
+        <lane id="6_1" index="1" disallow="pedestrian" speed="1.85" length="443.33" shape="1330.00,1331.60 886.67,1331.60"/>
     </edge>
     <edge id="7" from="J7" to="J8" priority="-1">
-        <lane id="7_0" index="0" allow="pedestrian" speed="6.67" length="443.34" width="2.00" shape="886.67,1334.20 443.33,1334.20"/>
-        <lane id="7_1" index="1" disallow="pedestrian" speed="6.67" length="443.34" shape="886.67,1331.60 443.33,1331.60"/>
+        <lane id="7_0" index="0" allow="pedestrian" speed="1.85" length="443.34" width="2.00" shape="886.67,1334.20 443.33,1334.20"/>
+        <lane id="7_1" index="1" disallow="pedestrian" speed="1.85" length="443.34" shape="886.67,1331.60 443.33,1331.60"/>
     </edge>
     <edge id="8" from="J8" to="J9" priority="-1">
-        <lane id="8_0" index="0" allow="pedestrian" speed="6.67" length="443.33" width="2.00" shape="443.33,1334.20 0.00,1334.20"/>
-        <lane id="8_1" index="1" disallow="pedestrian" speed="6.67" length="443.33" shape="443.33,1331.60 0.00,1331.60"/>
+        <lane id="8_0" index="0" allow="pedestrian" speed="1.85" length="443.33" width="2.00" shape="443.33,1334.20 0.00,1334.20"/>
+        <lane id="8_1" index="1" disallow="pedestrian" speed="1.85" length="443.33" shape="443.33,1331.60 0.00,1331.60"/>
     </edge>
     <edge id="9" from="J9" to="J10" priority="-1">
-        <lane id="9_0" index="0" allow="pedestrian" speed="6.67" length="443.33" width="2.00" shape="-4.20,1330.00 -4.20,886.67"/>
-        <lane id="9_1" index="1" disallow="pedestrian" speed="6.67" length="443.33" shape="-1.60,1330.00 -1.60,886.67"/>
+        <lane id="9_0" index="0" allow="pedestrian" speed="1.85" length="443.33" width="2.00" shape="-4.20,1330.00 -4.20,886.67"/>
+        <lane id="9_1" index="1" disallow="pedestrian" speed="1.85" length="443.33" shape="-1.60,1330.00 -1.60,886.67"/>
     </edge>
 
     <junction id="J0" type="priority" x="0.00" y="0.00" incLanes="11_0 11_1" intLanes="" shape="-5.20,0.00 0.00,0.00 0.00,-5.20 -2.89,-4.62 -3.90,-3.90 -4.62,-2.89 -5.06,-1.59">
