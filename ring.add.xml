@@ -104,11 +104,11 @@
         <stop busStop="stop10" duration="15"/>
     </route>
 
-    <vehicle id="bus.0" type="BUS" depart="0" route="route1"/>
-    <vehicle id="bus.1" type="BUS" depart="0" route="route2"/>
-    <vehicle id="bus.2" type="BUS" depart="0" route="route3"/>
-    <vehicle id="bus.3" type="BUS" depart="0" route="route4"/>
-    <vehicle id="bus.4" type="BUS" depart="0" route="route5"/>
-    <vehicle id="bus.5" type="BUS" depart="0" route="route6"/>
+    <vehicle id="bus.0" type="BUS" depart="0" line="line1" route="route1"/>
+    <vehicle id="bus.1" type="BUS" depart="0" line="line1" route="route2"/>
+    <vehicle id="bus.2" type="BUS" depart="0" line="line1" route="route3"/>
+    <vehicle id="bus.3" type="BUS" depart="0" line="line1" route="route4"/>
+    <vehicle id="bus.4" type="BUS" depart="0" line="line1" route="route5"/>
+    <vehicle id="bus.5" type="BUS" depart="0" line="line1" route="route6"/>
 
 </additional>

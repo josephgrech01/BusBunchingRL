@@ -16,7 +16,7 @@ else:
 from sumolib import checkBinary
 import traci
 
-numBuses = 2
+numBuses = 6
 
 class SumoEnv(gym.Env):
     def __init__(self, gui=False, noWarnings=False):
@@ -25,7 +25,7 @@ class SumoEnv(gym.Env):
         else:
             self._sumoBinary = checkBinary('sumo')
 
-        self.sumoCmd = [self._sumoBinary, "-c", "demo.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
+        self.sumoCmd = [self._sumoBinary, "-c", "ring.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
         if noWarnings:
             self.sumoCmd.append("--no-warnings")
 
@@ -47,7 +47,7 @@ class SumoEnv(gym.Env):
 
         # self.peopleOnBuses = [[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
         self.peopleOnBuses = [[0]*12, [0]*12, [0]*12, [0]*12, [0]*12, [0]*12] # stores the people on each bus which will stop at each stop
-        print("PEOPLE ON BUSES: ", self.peopleOnBuses[0:2])
+        # print("PEOPLE ON BUSES: ", self.peopleOnBuses)
 
         self.action_space = Discrete(3)
 
@@ -92,6 +92,7 @@ class SumoEnv(gym.Env):
 
             #alighting
             personsOnBus = traci.vehicle.getPersonIDList(self.decisionBus[0])
+            
             for person in personsOnBus:
                 if self.personsWithStop[person][0] == self.decisionBus[1]:
                     self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] -= 1
@@ -110,22 +111,25 @@ class SumoEnv(gym.Env):
             # print("NO ACTION")
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
             traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=self.decisionBus[2])
+            print("STOP: ", self.decisionBus[1])
             print("DWELL TIME: ", self.decisionBus[2])
 
             #UPDATE PEOPLE ON BUS
             personsOnStop = traci.busstop.getPersonIDs(self.decisionBus[1])
             # for key, value in self.personsWithStop:
             #boarding
-            for person in personsOnStop:    
+            for person in personsOnStop: 
+                # print("PERSON ID: ", person)   
                 self.personsWithStop[person][1] = self.decisionBus[0]
                 self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] += 1
 
 
             #alighting
             personsOnBus = traci.vehicle.getPersonIDList(self.decisionBus[0])
+            print("PERSONS ON BUS: ", personsOnBus)
             for person in personsOnBus:
                 if self.personsWithStop[person][0] == self.decisionBus[1]:
-                    print("DECREMENTING")
+                    # print("DECREMENTING")
                     self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] -= 1
 
 
@@ -135,12 +139,12 @@ class SumoEnv(gym.Env):
 
         reachedStopBuses = self.reachedStop()
         while len(reachedStopBuses) < 1:
-            if traci.simulation.getTime() == 28:
-                print(reachedStopBuses)
+            # if traci.simulation.getTime() == 28:
+            #     print(reachedStopBuses)
             self.sumoStep()
             reachedStopBuses = self.reachedStop()
-            if traci.simulation.getTime() == 29:
-                print(reachedStopBuses)
+            # if traci.simulation.getTime() == 29:
+            #     print(reachedStopBuses)
 
         ###### UPDATE DECISION BUS #######
         self.decisionBus = [reachedStopBuses[0][0], reachedStopBuses[0][1], self.getStopTime(reachedStopBuses[0][0], reachedStopBuses[0][1])]
@@ -156,9 +160,9 @@ class SumoEnv(gym.Env):
         reward = self.computeReward("sd", 0.6, 0.4)
 
         # self.df = self.df.append({'SD':self.sd, 'Reward':reward, 'Action':action}, ignore_index=True)
-        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'SD':self.sd, 'Reward':reward, 'Action':action, 'Max Speed':traci.vehicle.getMaxSpeed("bus.0"), 'Speed': traci.vehicle.getSpeed("bus.0")}])], ignore_index=True)
+        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'SD':self.sd, 'Reward':reward, 'Action':action}])], ignore_index=True)
 
-        if self.gymStep > 50:
+        if self.gymStep > 5000:
             print("DONE")
             print(self.decisionBus)
             print("PERSONS WITH STOP: ", self.personsWithStop)
@@ -295,7 +299,7 @@ class SumoEnv(gym.Env):
         return h
 
     def getForwardHeadway(self, leader, follower):
-        numEdges = 6
+        numEdges = 12
         leaderRoad = int(traci.vehicle.getRoadID(leader))
         followerRoad = int(traci.vehicle.getRoadID(follower))
 
@@ -455,15 +459,29 @@ class SumoEnv(gym.Env):
         # personsWithoutStop = [person for person in persons if person not in self.personsWithStop]
         personsWithoutStop = [person for person in persons if person not in self.personsWithStop]
         for person in personsWithoutStop:
-            num = random.randint(4,5) #needs to be fixed when using the proper circuit
-            if num==4:
-                s = "stop2"
-            else:
-                s = "stop3"
-            traci.person.appendDrivingStage(person, str(num), "line1", stopID=s)
-            traci.person.appendWalkingStage(person, [str(num)], 30)
-            # self.personsWithStop.append(person)
-            self.personsWithStop[person] = [s, None]
+            # num = random.randint(4,5) #needs to be fixed when using the proper circuit
+            # if num==4:
+            #     s = "stop2"
+            # else:
+            #     s = "stop3"
+            num = random.randint(1,6)
+            edge = traci.person.getRoadID(person)
+            newEdge = (int(edge) + num) % 12
+            newStop = newEdge + 1
+            stop = "stop"+str(newStop)
+
+
+            # traci.person.appendDrivingStage(person, str(num), ["line1"], stopID=s)#str(num), "line1", stopID=s) #OLDEST
+            # traci.person.appendWalkingStage(person, [str(num)], 30) #OLDEST
+
+            traci.person.appendDrivingStage(person, str(newEdge), "line1", stopID=stop)
+            traci.person.appendWalkingStage(person, [str(newEdge)], 230)
+
+            # traci.person.appendDrivingStage(person, 0, "line1", stopID="stop1") #WORKED
+            # traci.person.appendWalkingStage(person, [str("0")], 230) #WORKED
+            
+            self.personsWithStop[person] = [stop, None]
+            # self.personsWithStop[person] = ["stop1", None] #WORKED
             
 
     def getStopTime(self, bus, stop):
@@ -473,10 +491,10 @@ class SumoEnv(gym.Env):
         # print("bus[-1] {} (stop-1) {}".format(int(bus[-1]), (stop-1)))
         alighting = self.peopleOnBuses[int(bus[-1])][int(stop[-1])-1]
 
-        print("BOARDING: {} ALIGHTING: {}".format(boarding, alighting))
-        print("PEOPLE ON BUS: {}".format(self.peopleOnBuses[0:2]))
+        # print("BOARDING: {} ALIGHTING: {}".format(boarding, alighting))
+        # print("PEOPLE ON BUS: {}".format(self.peopleOnBuses))
         #work out dwell time
-        time = max(math.ceil(boarding/3), math.ceil(abs(alighting)/1.8)) #boarding and alighting rate #abs is there just in case people on bus falls below zero if a person should've left a bus but the simulation did not give them time
+        time = max(math.ceil(boarding/3), math.ceil(abs(alighting)/1.8)) #boarding and alighting rate #abs is there just in case is falls below zero if a person should've left a bus but the simulation did not give them time
         return time
 
     def updatePassengersOnBoard(self): #For any passengers which board the bus during holding time and thus were not know beforehand that they would board
@@ -485,7 +503,7 @@ class SumoEnv(gym.Env):
                 if self.personsWithStop[person][1] == None:
                     self.personsWithStop[person][1] = bus #WAS == BEFORE (A MISTAKE)
                     self.peopleOnBuses[int(bus[-1])][int(self.personsWithStop[person][0][-1])-1] += 1
-                    print("INCREMENTED {} STOP {}".format(bus, self.personsWithStop[person][0]))
+                    # print("INCREMENTED {} STOP {}".format(bus, self.personsWithStop[person][0]))
 
         #not sure if i need to update any persons alighting here as well
         #If multiple buses stop at same time and this causes problems, remove alighting time altogether
