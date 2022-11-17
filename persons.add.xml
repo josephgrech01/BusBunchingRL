@@ -30,7 +30,7 @@
         <walk from="0" busStop="stop1"/>
     </person>
 
-<!--
+
     <person id="p11" depart="0" departPos="221">
         <walk from="1" busStop="stop2"/>
     </person>
@@ -380,7 +380,7 @@
     </person>
     <person id="p120" depart="0" departPos="221">
         <walk from="11" busStop="stop12"/>
-    </person> -->
+    </person>
 
 
 

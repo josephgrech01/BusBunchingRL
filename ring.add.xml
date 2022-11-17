@@ -1,16 +1,16 @@
 <additional>
-    <busStop id="stop1" lane="0_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop2" lane="1_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop3" lane="2_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop4" lane="3_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop5" lane="4_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop6" lane="5_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop7" lane="6_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop8" lane="7_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop9" lane="8_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop10" lane="9_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop11" lane="10_1" startPos="221.67" endPos="226.67" lines="line1"/>
-    <busStop id="stop12" lane="11_1" startPos="221.67" endPos="226.67" lines="line1"/>
+    <busStop id="stop1" lane="0_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop2" lane="1_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop3" lane="2_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop4" lane="3_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop5" lane="4_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop6" lane="5_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop7" lane="6_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop8" lane="7_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop9" lane="8_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop10" lane="9_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop11" lane="10_1" startPos="221.67" endPos="231.67" lines="line1"/>
+    <busStop id="stop12" lane="11_1" startPos="221.67" endPos="231.67" lines="line1"/>
 
     <vType id="BUS" vClass="bus" accel="2.6" decel="4.5" maxSpeed="1.85" sigma="0" length="12" minGap="3" color="1,1,0" guiShape="bus"/>
 
@@ -105,10 +105,10 @@
     </route>
 
     <vehicle id="bus.0" type="BUS" depart="0" line="line1" route="route1"/>
-    <vehicle id="bus.1" type="BUS" depart="0" line="line1" route="route2"/>
-    <vehicle id="bus.2" type="BUS" depart="0" line="line1" route="route3"/>
+    <vehicle id="bus.1" type="BUS" depart="0" line="line1" route="route6"/>
+    <vehicle id="bus.2" type="BUS" depart="0" line="line1" route="route5"/>
     <vehicle id="bus.3" type="BUS" depart="0" line="line1" route="route4"/>
-    <vehicle id="bus.4" type="BUS" depart="0" line="line1" route="route5"/>
-    <vehicle id="bus.5" type="BUS" depart="0" line="line1" route="route6"/>
+    <vehicle id="bus.4" type="BUS" depart="0" line="line1" route="route3"/>
+    <vehicle id="bus.5" type="BUS" depart="0" line="line1" route="route2"/>
 
 </additional>

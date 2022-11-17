@@ -6,6 +6,8 @@ import numpy as np
 import math
 import pandas as pd
 import random
+from datetime import datetime
+from time import gmtime, strftime
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -54,8 +56,8 @@ class SumoEnv(gym.Env):
         # DEPEND ON THE NETWORK
         # 2 instead of len(self.buses)
         # person capacity must be changed from 4 to ?
-        self.low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(numBuses)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] +  [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
-        self.high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(numBuses)] + [230, 230] + [float('inf') for _ in self.busStops] + [2000 for _ in self.busStops] + [85, 85, 85], dtype='float32')
+        self.low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(numBuses)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] + [0] + [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
+        self.high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(numBuses)] + [5320, 5320] + [float('inf') for _ in self.busStops] + [float('inf')] + [200000 for _ in self.busStops] + [85, 85, 85], dtype='float32')
         # [[1,0,0],[1,0]]
 
 
@@ -64,12 +66,18 @@ class SumoEnv(gym.Env):
         self.reward_range = (float('-inf'), 0)
 
         self.sd = 0
+        self.stopTime = 0
         self.df = pd.DataFrame(columns=['SD', 'Reward', 'Action'])
+        self.dfBunching = pd.DataFrame(columns=['Bus','Headway','Time'])
+        now = datetime.now()
+        time = now.strftime("%H:%M:%S")
+        self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':"NA", 'Headway':"NA", 'Time':time}])], ignore_index=True)
 
 
     def step(self, action):
 
         self.gymStep += 1
+        print("GYM STEP: ", self.gymStep)
         # self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
         # self.updatePersonStop()
         
@@ -111,8 +119,8 @@ class SumoEnv(gym.Env):
             # print("NO ACTION")
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
             traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=self.decisionBus[2])
-            print("STOP: ", self.decisionBus[1])
-            print("DWELL TIME: ", self.decisionBus[2])
+            # print("STOP: ", self.decisionBus[1])
+            # print("DWELL TIME: ", self.decisionBus[2])
 
             #UPDATE PEOPLE ON BUS
             personsOnStop = traci.busstop.getPersonIDs(self.decisionBus[1])
@@ -126,7 +134,7 @@ class SumoEnv(gym.Env):
 
             #alighting
             personsOnBus = traci.vehicle.getPersonIDList(self.decisionBus[0])
-            print("PERSONS ON BUS: ", personsOnBus)
+            # print("PERSONS ON BUS: ", personsOnBus)
             for person in personsOnBus:
                 if self.personsWithStop[person][0] == self.decisionBus[1]:
                     # print("DECREMENTING")
@@ -147,7 +155,8 @@ class SumoEnv(gym.Env):
             #     print(reachedStopBuses)
 
         ###### UPDATE DECISION BUS #######
-        self.decisionBus = [reachedStopBuses[0][0], reachedStopBuses[0][1], self.getStopTime(reachedStopBuses[0][0], reachedStopBuses[0][1])]
+        self.stopTime = self.getStopTime(reachedStopBuses[0][0], reachedStopBuses[0][1])
+        self.decisionBus = [reachedStopBuses[0][0], reachedStopBuses[0][1], self.stopTime]
 
 
         ###############################################
@@ -162,12 +171,13 @@ class SumoEnv(gym.Env):
         # self.df = self.df.append({'SD':self.sd, 'Reward':reward, 'Action':action}, ignore_index=True)
         self.df = pd.concat([self.df, pd.DataFrame.from_records([{'SD':self.sd, 'Reward':reward, 'Action':action}])], ignore_index=True)
 
-        if self.gymStep > 5000:
+        if self.gymStep > 1000:
             print("DONE")
             print(self.decisionBus)
             print("PERSONS WITH STOP: ", self.personsWithStop)
             done = True
             self.df.to_csv('log.csv')
+            # self.dfBunching.to_csv('bunchingNoGUI.csv')
             
         else:
             done = False
@@ -188,6 +198,7 @@ class SumoEnv(gym.Env):
         self.peopleOnBuses = [[0]*12, [0]*12, [0]*12, [0]*12, [0]*12, [0]*12]
 
         self.sd = 0
+        self.stopTime = 0
 
         # sumo step until all buses are in the simulation
         while len(traci.vehicle.getIDList()) < numBuses: #DEPENDS ON THE NUMBER OF BUSES
@@ -258,6 +269,17 @@ class SumoEnv(gym.Env):
         stop = self.oneHotEncode(self.busStops, self.decisionBus[1])
         bus = self.oneHotEncode(self.buses, self.decisionBus[0])
         headways = self.getHeadways()
+        if headways[0] < 100:
+            now = datetime.now()
+
+            time = now.strftime("%H:%M:%S")
+            self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':self.decisionBus[0], 'Headway':headways[0], 'Time':time}])], ignore_index=True)
+        elif headways[1] < 100:
+            now = datetime.now()
+
+            time = now.strftime("%H:%M:%S")
+            self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':self.decisionBus[0], 'Headway':headways[1], 'Time':time}])], ignore_index=True)
+
         
         # print("forward headway from decision {} = {}".format(self.decisionBus[0], headways[0]))
         # print("backward headway from decision {} = {}".format(self.decisionBus[0], headways[1]))
@@ -273,7 +295,7 @@ class SumoEnv(gym.Env):
         numPassengers = self.getNumPassengers()
 
         # state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes] + [numPassengers]
-        state = stop + bus + headways + waitingPersons + maxWaitTimes + numPassengers
+        state = stop + bus + headways + waitingPersons + self.stopTime + maxWaitTimes + numPassengers
 
         # print("state: ", state)
         # return np.array(state, dtype='float32')
@@ -302,15 +324,22 @@ class SumoEnv(gym.Env):
         numEdges = 12
         leaderRoad = int(traci.vehicle.getRoadID(leader))
         followerRoad = int(traci.vehicle.getRoadID(follower))
+        # print("leader: ", leader)
+        # print("follower: ", follower)
 
         # print("leader road: ", leaderRoad)
         # print("follower road: ", followerRoad)
 
         if leaderRoad == followerRoad:
             if traci.vehicle.getLanePosition(leader) - traci.vehicle.getLanePosition(follower) > 0:
+                # print("leader pos: ", traci.vehicle.getLanePosition(leader))
+                # print("follower pos: ", traci.vehicle.getLanePosition(follower))
+                # print("..........................................")
                 return traci.vehicle.getLanePosition(leader) - traci.vehicle.getLanePosition(follower)
         
         h = traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower)
+        # print("Follower road length: ", traci.lane.getLength(traci.vehicle.getLaneID(follower)))
+        # print("Follower pos: ", traci.vehicle.getLanePosition(follower))
         if leaderRoad == followerRoad:
             repeats = numEdges - 1
         elif leaderRoad > followerRoad:
@@ -324,9 +353,12 @@ class SumoEnv(gym.Env):
             if lane >= numEdges:
                 lane = lane % numEdges
             # print("ROAD ID: ", lane)
+            # print("ROAD LEN: ", traci.lane.getLength(str(lane)+"_0"))
             h += traci.lane.getLength(str(lane)+"_0")
 
         h+= traci.vehicle.getLanePosition(leader)
+        # print("Leader pos: ", traci.vehicle.getLanePosition(leader))
+        # print("...........................................")
 
         return h
             
@@ -369,6 +401,7 @@ class SumoEnv(gym.Env):
             #backwardHeadway = self.getHeadway(self.decisionBus[0], follower)
             backwardHeadway = self.getForwardHeadway(self.decisionBus[0], follower)
             # print("BACKWARD: ", backwardHeadway)
+            # print("############################################")
             
 
             return [forwardHeadway, backwardHeadway]
@@ -475,7 +508,7 @@ class SumoEnv(gym.Env):
             # traci.person.appendWalkingStage(person, [str(num)], 30) #OLDEST
 
             traci.person.appendDrivingStage(person, str(newEdge), "line1", stopID=stop)
-            traci.person.appendWalkingStage(person, [str(newEdge)], 230)
+            traci.person.appendWalkingStage(person, [str(newEdge)], 250)
 
             # traci.person.appendDrivingStage(person, 0, "line1", stopID="stop1") #WORKED
             # traci.person.appendWalkingStage(person, [str("0")], 230) #WORKED
@@ -506,10 +539,4 @@ class SumoEnv(gym.Env):
                     # print("INCREMENTED {} STOP {}".format(bus, self.personsWithStop[person][0]))
 
         #not sure if i need to update any persons alighting here as well
-        #If multiple buses stop at same time and this causes problems, remove alighting time altogether
-
-
-
-
-
-        
+        #If multiple buses stop at same time and this causes problems, remove alighting time altogether      
