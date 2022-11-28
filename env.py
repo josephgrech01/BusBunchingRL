@@ -7,7 +7,6 @@ import math
 import pandas as pd
 import random
 from datetime import datetime
-from time import gmtime, strftime
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -66,20 +65,22 @@ class SumoEnv(gym.Env):
         self.reward_range = (float('-inf'), 0)
 
         self.sd = 0
+        self.headwayReward = 0
+
+
         self.stopTime = 0
-        self.df = pd.DataFrame(columns=['SD', 'Reward', 'Action'])
+        self.df = pd.DataFrame(columns=['HeadwayRew', 'SD', 'Reward', 'Action'])
         self.dfBunching = pd.DataFrame(columns=['Bus','Headway','Time'])
-        now = datetime.now()
-        time = now.strftime("%H:%M:%S")
-        self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':"NA", 'Headway':"NA", 'Time':time}])], ignore_index=True)
+        # now = datetime.now()
+        # time = now.strftime("%H:%M:%S")
+        # self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':"NA", 'Headway':"NA", 'Time':time}])], ignore_index=True)
 
 
     def step(self, action):
 
         self.gymStep += 1
-        print("GYM STEP: ", self.gymStep)
+        # print("GYM STEP: ", self.gymStep)
         # self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
-        # self.updatePersonStop()
         
 
         #####################
@@ -169,15 +170,17 @@ class SumoEnv(gym.Env):
         reward = self.computeReward("sd", 0.6, 0.4)
 
         # self.df = self.df.append({'SD':self.sd, 'Reward':reward, 'Action':action}, ignore_index=True)
-        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'SD':self.sd, 'Reward':reward, 'Action':action}])], ignore_index=True)
+        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'HeadwayRew':self.headwayReward, 'SD':self.sd, 'Reward':reward, 'Action':action}])], ignore_index=True)
 
-        if self.gymStep > 1000:
+        if self.gymStep > 750:#125:#1500:
             print("DONE")
-            print(self.decisionBus)
-            print("PERSONS WITH STOP: ", self.personsWithStop)
+            # print(self.decisionBus)
+            # print("PERSONS WITH STOP: ", self.personsWithStop)
             done = True
-            self.df.to_csv('log.csv')
-            # self.dfBunching.to_csv('bunchingNoGUI.csv')
+            # self.df.to_csv('logWithModel.csv')
+            # self.df.to_csv('logWithModelNewHW.csv')
+            # self.df.to_csv('logNewHW.csv')
+            # self.dfBunching.to_csv('bunchingGUIHighSpeedNewModelNewHW.csv')
             
         else:
             done = False
@@ -203,6 +206,8 @@ class SumoEnv(gym.Env):
         # sumo step until all buses are in the simulation
         while len(traci.vehicle.getIDList()) < numBuses: #DEPENDS ON THE NUMBER OF BUSES
             self.sumoStep()
+
+        
 
 
         self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
@@ -261,7 +266,7 @@ class SumoEnv(gym.Env):
 
     def sumoStep(self):
         traci.simulationStep()
-        self.updatePersonStop()
+        self.updatePersonStop() #uncomment
         if len([bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]) == numBuses:
             self.updatePassengersOnBoard()
 
@@ -269,16 +274,16 @@ class SumoEnv(gym.Env):
         stop = self.oneHotEncode(self.busStops, self.decisionBus[1])
         bus = self.oneHotEncode(self.buses, self.decisionBus[0])
         headways = self.getHeadways()
-        if headways[0] < 100:
-            now = datetime.now()
+        # if headways[0] < 100:
+        #     now = datetime.now()
 
-            time = now.strftime("%H:%M:%S")
-            self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':self.decisionBus[0], 'Headway':headways[0], 'Time':time}])], ignore_index=True)
-        elif headways[1] < 100:
-            now = datetime.now()
+        #     time = now.strftime("%H:%M:%S")
+        #     self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':self.decisionBus[0], 'Headway':headways[0], 'Time':time}])], ignore_index=True)
+        # elif headways[1] < 100:
+        #     now = datetime.now()
 
-            time = now.strftime("%H:%M:%S")
-            self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':self.decisionBus[0], 'Headway':headways[1], 'Time':time}])], ignore_index=True)
+        #     time = now.strftime("%H:%M:%S")
+        #     self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':self.decisionBus[0], 'Headway':headways[1], 'Time':time}])], ignore_index=True)
 
         
         # print("forward headway from decision {} = {}".format(self.decisionBus[0], headways[0]))
@@ -295,7 +300,7 @@ class SumoEnv(gym.Env):
         numPassengers = self.getNumPassengers()
 
         # state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes] + [numPassengers]
-        state = stop + bus + headways + waitingPersons + self.stopTime + maxWaitTimes + numPassengers
+        state = stop + bus + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers
 
         # print("state: ", state)
         # return np.array(state, dtype='float32')
@@ -436,7 +441,11 @@ class SumoEnv(gym.Env):
         reward = 0
         headways = self.getHeadways()
 
-        reward = -alpha * abs(headways[0] - headways[1])
+        # reward = -alpha * abs(headways[0] - headways[1])
+        # self.headwayReward = -alpha * abs(headways[0] - headways[1])
+
+        reward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
+        self.headwayReward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
 
         # print("VARIANCE: ", self.getWaitingTimeVariance())
 
@@ -444,6 +453,7 @@ class SumoEnv(gym.Env):
             reward += -beta * self.getWaitingTimeVariance()
         elif s == "sd":
             reward += -beta * self.getWaitStandardDevUsingMax()
+            self.sd = -beta * self.getWaitStandardDevUsingMax()
 
         return reward
         
@@ -492,28 +502,34 @@ class SumoEnv(gym.Env):
         # personsWithoutStop = [person for person in persons if person not in self.personsWithStop]
         personsWithoutStop = [person for person in persons if person not in self.personsWithStop]
         for person in personsWithoutStop:
+            #OLDEST
             # num = random.randint(4,5) #needs to be fixed when using the proper circuit
             # if num==4:
             #     s = "stop2"
             # else:
             #     s = "stop3"
+
+            #RING
             num = random.randint(1,6)
             edge = traci.person.getRoadID(person)
             newEdge = (int(edge) + num) % 12
             newStop = newEdge + 1
             stop = "stop"+str(newStop)
+            traci.person.appendDrivingStage(person, str(newEdge), "line1", stopID=stop) #RING
+            traci.person.appendWalkingStage(person, [str(newEdge)], 250) #RING
+            self.personsWithStop[person] = [stop, None]
 
 
-            # traci.person.appendDrivingStage(person, str(num), ["line1"], stopID=s)#str(num), "line1", stopID=s) #OLDEST
+            # traci.person.appendDrivingStage(person, str(num), "line1", stopID=s)#str(num), "line1", stopID=s) #OLDEST
             # traci.person.appendWalkingStage(person, [str(num)], 30) #OLDEST
+            # self.personsWithStop[person] = [s, None] #OLDEST
 
-            traci.person.appendDrivingStage(person, str(newEdge), "line1", stopID=stop)
-            traci.person.appendWalkingStage(person, [str(newEdge)], 250)
+            
 
             # traci.person.appendDrivingStage(person, 0, "line1", stopID="stop1") #WORKED
             # traci.person.appendWalkingStage(person, [str("0")], 230) #WORKED
             
-            self.personsWithStop[person] = [stop, None]
+            
             # self.personsWithStop[person] = ["stop1", None] #WORKED
             
 

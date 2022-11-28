@@ -4,7 +4,7 @@ from env import SumoEnv
 
 e = SumoEnv(gui=True, noWarnings=True)
 
-model = DQN.load("dqn_model_MaxSD_FixedHeadway_3")
+model = DQN.load("dqn_model_Ring_Speed60_eplen_750_NewHeadway")
 
 obs = e.reset()
 # print("obs: ", obs)
