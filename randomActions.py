@@ -18,3 +18,8 @@ for episode in range(1, episodes + 1):
     print("Episode: {} Score: {}".format(episode, score))
 
 env.close()
+
+# env.reset()   #the observation returned by reset method must be a numpy array
+# from gym.utils.env_checker import check_env
+# check_env(env)
+# print("hey")

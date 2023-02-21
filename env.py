@@ -55,9 +55,11 @@ class SumoEnv(gym.Env):
         # DEPEND ON THE NETWORK
         # 2 instead of len(self.buses)
         # person capacity must be changed from 4 to ?
-        self.low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(numBuses)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] + [0] + [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
-        self.high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(numBuses)] + [5320, 5320] + [float('inf') for _ in self.busStops] + [float('inf')] + [200000 for _ in self.busStops] + [85, 85, 85], dtype='float32')
+        # self.low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(numBuses)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] + [0] + [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
+        # self.high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(numBuses)] + [5320, 5320] + [float('inf') for _ in self.busStops] + [float('inf')] + [200000 for _ in self.busStops] + [85, 85, 85], dtype='float32')
         # [[1,0,0],[1,0]]
+        self.low = np.array([0 for _ in range(len(self.busStops))] + [0, 0] +  [0 for _ in range(len(self.busStops))] + [0] + [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
+        self.high = np.array([1 for _ in range(len(self.busStops))] + [5320, 5320] + [float('inf') for _ in self.busStops] + [float('inf')] + [200000 for _ in self.busStops] + [85, 85, 85], dtype='float32')
 
 
         self.observation_space = Box(self.low, self.high, dtype='float32')
@@ -79,7 +81,7 @@ class SumoEnv(gym.Env):
     def step(self, action):
 
         self.gymStep += 1
-        # print("GYM STEP: ", self.gymStep)
+        print("GYM STEP: ", self.gymStep)
         # self.buses = [bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]
         
 
@@ -167,12 +169,12 @@ class SumoEnv(gym.Env):
         # ADD DWELL TIME TO STATE!!!!
         state = self.computeState()
 
-        reward = self.computeReward("sd", 0.6, 0.4)
+        reward = self.computeReward("sd", 1,0)# 0.6, 0.4)
 
         # self.df = self.df.append({'SD':self.sd, 'Reward':reward, 'Action':action}, ignore_index=True)
         self.df = pd.concat([self.df, pd.DataFrame.from_records([{'HeadwayRew':self.headwayReward, 'SD':self.sd, 'Reward':reward, 'Action':action}])], ignore_index=True)
 
-        if self.gymStep > 750:#125:#1500:
+        if self.gymStep > 250:#125:#1500
             print("DONE")
             # print(self.decisionBus)
             # print("PERSONS WITH STOP: ", self.personsWithStop)
@@ -273,6 +275,7 @@ class SumoEnv(gym.Env):
     def computeState(self):
         stop = self.oneHotEncode(self.busStops, self.decisionBus[1])
         bus = self.oneHotEncode(self.buses, self.decisionBus[0])
+
         headways = self.getHeadways()
         # if headways[0] < 100:
         #     now = datetime.now()
@@ -300,7 +303,8 @@ class SumoEnv(gym.Env):
         numPassengers = self.getNumPassengers()
 
         # state = [stop] + [bus] + [headways] + [waitingPersons] + [maxWaitTimes] + [numPassengers]
-        state = stop + bus + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers
+        # state = stop + bus + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers
+        state = stop + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers
 
         # print("state: ", state)
         # return np.array(state, dtype='float32')
@@ -444,16 +448,23 @@ class SumoEnv(gym.Env):
         # reward = -alpha * abs(headways[0] - headways[1])
         # self.headwayReward = -alpha * abs(headways[0] - headways[1])
 
+
+        # reward = -(abs(886.67-headways[0]) + abs(886.67-headways[1]))/1773.34 #normalize between zero and one (incorrect?)
+        # print(reward)
+
         reward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
         self.headwayReward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
 
+        
+
         # print("VARIANCE: ", self.getWaitingTimeVariance())
 
-        if s == "variance":
-            reward += -beta * self.getWaitingTimeVariance()
-        elif s == "sd":
-            reward += -beta * self.getWaitStandardDevUsingMax()
-            self.sd = -beta * self.getWaitStandardDevUsingMax()
+        #TEST WITHOUT THE WAITING TIME IN REWARD
+        # if s == "variance":
+        #     reward += -beta * self.getWaitingTimeVariance()
+        # elif s == "sd":
+        #     reward += -beta * self.getWaitStandardDevUsingMax()
+        #     self.sd = -beta * self.getWaitStandardDevUsingMax()
 
         return reward
         
@@ -556,3 +567,5 @@ class SumoEnv(gym.Env):
 
         #not sure if i need to update any persons alighting here as well
         #If multiple buses stop at same time and this causes problems, remove alighting time altogether      
+
+
