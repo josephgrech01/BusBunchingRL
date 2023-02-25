@@ -64,10 +64,13 @@ class SumoEnv(gym.Env):
 
         self.observation_space = Box(self.low, self.high, dtype='float32')
 
-        self.reward_range = (float('-inf'), 0)
+        # self.reward_range = (float('-inf'), 0)
+        self.reward_range = (0,250)
 
         self.sd = 0
         self.headwayReward = 0
+
+        self.tempReward = 0
 
 
         self.stopTime = 0
@@ -446,14 +449,26 @@ class SumoEnv(gym.Env):
         headways = self.getHeadways()
 
         # reward = -alpha * abs(headways[0] - headways[1])
+
+        reward = -abs(headways[0] - headways[1])
+
+
         # self.headwayReward = -alpha * abs(headways[0] - headways[1])
+
+        # reward function from paper using only its first term
+        reward = math.exp(-abs(headways[0] - headways[1]))
+        self.tempReward += reward
+        # print('reward: ', reward)
+        # print('forward: ', headways[0])
+        # print('backward: ', headways[1])
+        # print('total reward: ', self.tempReward)
 
 
         # reward = -(abs(886.67-headways[0]) + abs(886.67-headways[1]))/1773.34 #normalize between zero and one (incorrect?)
         # print(reward)
 
-        reward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
-        self.headwayReward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
+        # reward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
+        # self.headwayReward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
 
         
 
