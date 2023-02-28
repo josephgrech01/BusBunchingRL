@@ -2,7 +2,7 @@ from env import SumoEnv
 import random
 
 env = SumoEnv(gui=True, noWarnings=True)
-episodes = 3
+episodes = 1
 for episode in range(1, episodes + 1):
 
     state = env.reset()
