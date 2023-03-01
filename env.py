@@ -561,66 +561,49 @@ class SumoEnv(gym.Env):
         self.sd = math.sqrt(variance)
         return math.sqrt(variance)
 
+    # function which randomly assigns a destination bus stop to persons yet without a destination
     def updatePersonStop(self):
         persons = traci.person.getIDList()
-        # personsWithoutStop = [person for person in persons if person not in self.personsWithStop]
+        # get list of persons curently without destination
         personsWithoutStop = [person for person in persons if person not in self.personsWithStop]
-        for person in personsWithoutStop:
-            #OLDEST
-            # num = random.randint(4,5) #needs to be fixed when using the proper circuit
-            # if num==4:
-            #     s = "stop2"
-            # else:
-            #     s = "stop3"
-
-            #RING
+        for person in personsWithoutStop:            
+            # assign a random bus stop from the following six bus stops as the destination (as is done in the paper by Wang and Sun 2020)
             num = random.randint(1,6)
             edge = traci.person.getRoadID(person)
             newEdge = (int(edge) + num) % 12
             newStop = newEdge + 1
             stop = "stop"+str(newStop)
-            traci.person.appendDrivingStage(person, str(newEdge), "line1", stopID=stop) #RING
-            traci.person.appendWalkingStage(person, [str(newEdge)], 250) #RING
+            traci.person.appendDrivingStage(person, str(newEdge), "line1", stopID=stop) 
+            traci.person.appendWalkingStage(person, [str(newEdge)], 250) 
+            # add the person to the persons with an assigned stop
             self.personsWithStop[person] = [stop, None]
-
-
-            # traci.person.appendDrivingStage(person, str(num), "line1", stopID=s)#str(num), "line1", stopID=s) #OLDEST
-            # traci.person.appendWalkingStage(person, [str(num)], 30) #OLDEST
-            # self.personsWithStop[person] = [s, None] #OLDEST
-
             
-
-            # traci.person.appendDrivingStage(person, 0, "line1", stopID="stop1") #WORKED
-            # traci.person.appendWalkingStage(person, [str("0")], 230) #WORKED
-            
-            
-            # self.personsWithStop[person] = ["stop1", None] #WORKED
-            
-
+    # function which determines the dwell time of a bus at a stop based on the number of passengers boarding and alighting
     def getStopTime(self, bus, stop):
+
+        # the number of people on the bus stop waiting to board the bus
         boarding = traci.busstop.getPersonCount(stop)
-        #update people on bus - NOT HERE, NEED TO BE SURE THAT IT WILL ACTUALLY STOP
-        # alighting = sum([1 for key, value i])
-        # print("bus[-1] {} (stop-1) {}".format(int(bus[-1]), (stop-1)))
+        
+        # the number of passengers on this bus that will alight at this stop
         alighting = self.peopleOnBuses[int(bus[-1])][int(stop[-1])-1]
 
-        # print("BOARDING: {} ALIGHTING: {}".format(boarding, alighting))
-        # print("PEOPLE ON BUS: {}".format(self.peopleOnBuses))
-        #work out dwell time
-        time = max(math.ceil(boarding/3), math.ceil(abs(alighting)/1.8)) #boarding and alighting rate #abs is there just in case is falls below zero if a person should've left a bus but the simulation did not give them time
+        
+        # calculate dwell time according to the boarding and alighting rates in the paper by Wang and Sun 2020
+        time = max(math.ceil(boarding/3), math.ceil(abs(alighting)/1.8)) #abs is there just in case is falls below zero if a person should've left a bus but the simulation did not give them time
+        
         return time
 
-    def updatePassengersOnBoard(self): #For any passengers which board the bus during holding time and thus were not know beforehand that they would board
+    # For any passengers which board the bus during holding time and thus were not know beforehand that they would board
+    def updatePassengersOnBoard(self): 
         for bus in self.buses:
             for person in traci.vehicle.getPersonIDList(bus):
+                # check if passenger does not yet have a bus assigned to them
                 if self.personsWithStop[person][1] == None:
-                    self.personsWithStop[person][1] = bus #WAS == BEFORE (A MISTAKE)
+                    # assign the bus to the passenger
+                    self.personsWithStop[person][1] = bus 
+                    # increment number of passengers of the particular bus
                     self.peopleOnBuses[int(bus[-1])][int(self.personsWithStop[person][0][-1])-1] += 1
-                    # print("INCREMENTED {} STOP {}".format(bus, self.personsWithStop[person][0]))
 
-        #not sure if i need to update any persons alighting here as well
-        #If multiple buses stop at same time and this causes problems, remove alighting time altogether
-        # 
 
     def logValues(self):
         maxWaitTimes = self.getMaxWaitTimeOnStops()    
