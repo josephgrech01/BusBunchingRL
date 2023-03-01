@@ -4,7 +4,7 @@ from env import SumoEnv
 
 e = SumoEnv(gui=True, noWarnings=True)
 
-model = PPO.load("eplen250/ppo_Ring_Speed60NewHeadway_Nobusvectorinstate_NoWaitTime_Alpha1_PaperHeadway")
+model = PPO.load("eplen250/reward_0_2/ppo_Speed60_Nobusvectorinstate_NoWaitTime")
 
 obs = e.reset()
 # print("obs: ", obs)

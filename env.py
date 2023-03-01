@@ -72,8 +72,9 @@ class SumoEnv(gym.Env):
 
         self.observation_space = Box(self.low, self.high, dtype='float32')
 
-        self.reward_range = (float('-inf'), 0)
+        # self.reward_range = (float('-inf'), 0)
         # self.reward_range = (0,250)
+        self.reward_range = (0,500)
 
 
         self.sd = 0
@@ -488,14 +489,29 @@ class SumoEnv(gym.Env):
 
         # reward = -alpha * abs(headways[0] - headways[1])
 
-        reward = -abs(headways[0] - headways[1])
-
-
+        # reward = -abs(headways[0] - headways[1])
         # self.headwayReward = -alpha * abs(headways[0] - headways[1])
+#################################################################################################
 
+        if headways[0] <= 886.67:
+            forwardReward = headways[0] / 886.67
+        else: 
+            forwardReward = 886.67 / headways[0]
+
+        if headways[1] <= 886.67:
+            backwardReward = headways[1] / 886.67
+        else: 
+            backwardReward = 886.67 / headways[1]
+
+        reward = forwardReward + backwardReward
+
+
+
+
+#################################################################################################
         # reward function from paper using only its first term
-        reward = math.exp(-abs(headways[0] - headways[1]))
-        self.tempReward += reward
+        # reward = math.exp(-abs(headways[0] - headways[1]))
+        # self.tempReward += reward
         # print('reward: ', reward)
         # print('forward: ', headways[0])
         # print('backward: ', headways[1])
