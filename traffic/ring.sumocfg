@@ -1,0 +1,6 @@
+<configuration>
+    <input>
+        <net-file value="ring.net.xml"/>
+        <additional-files value="ring.add.xml,persons.add.xml"/>
+    </input>
+</configuration>

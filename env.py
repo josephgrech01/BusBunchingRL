@@ -27,7 +27,7 @@ class SumoEnv(gym.Env):
         else:
             self._sumoBinary = checkBinary('sumo')
 
-        self.sumoCmd = [self._sumoBinary, "-c", "ring.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
+        self.sumoCmd = [self._sumoBinary, "-c", "traffic/ring.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
         if noWarnings:
             self.sumoCmd.append("--no-warnings")
 
@@ -73,8 +73,8 @@ class SumoEnv(gym.Env):
         self.observation_space = Box(self.low, self.high, dtype='float32')
 
         # self.reward_range = (float('-inf'), 0)
-        # self.reward_range = (0,250)
-        self.reward_range = (0,500)
+        self.reward_range = (0,250)
+        # self.reward_range = (0,500)
 
 
         self.sd = 0
@@ -202,7 +202,7 @@ class SumoEnv(gym.Env):
 
         
         # check if episode has terminated
-        if self.gymStep > 250:#125:#1500
+        if self.gymStep > 500:#125:#1500
             print("DONE")
             done = True
             # self.df.to_csv('logWithModel.csv')
@@ -214,15 +214,15 @@ class SumoEnv(gym.Env):
 
             meanValues = self.dfLog['mean'].tolist()
 
-            # fig, ax1 = plt.subplots(1, 1)
-            # ax1.set_xlabel('step')
-            # ax1.set_ylabel('Mean waiting time')
-            # ax1.set_title('PPO')
-            # ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
-            # ax1.grid()
-            # plt.savefig('graphs/ppo.jpg')
-            # plt.show()
-            # plt.clf()
+            fig, ax1 = plt.subplots(1, 1)
+            ax1.set_xlabel('step')
+            ax1.set_ylabel('Mean waiting time')
+            ax1.set_title('NoControl')
+            ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
+            ax1.grid()
+            plt.savefig('graphs/test/noControl.jpg')
+            plt.show()
+            plt.clf()
 
   
         else:
@@ -487,30 +487,57 @@ class SumoEnv(gym.Env):
         reward = 0
         headways = self.getHeadways()
 
+        min = 0
+        max = 5320
+
+        forward = (headways[0] - min)/(max - min)
+        backward = (headways[1] - min)/(max - min)
+
+        reward = -abs(forward - backward)
+
         # reward = -alpha * abs(headways[0] - headways[1])
 
         # reward = -abs(headways[0] - headways[1])
         # self.headwayReward = -alpha * abs(headways[0] - headways[1])
 #################################################################################################
 
-        if headways[0] <= 886.67:
-            forwardReward = headways[0] / 886.67
-        else: 
-            forwardReward = 886.67 / headways[0]
+        # # forward headway
+        # if headways[0] <= 886.67:
+        #     forwardReward = headways[0] / 886.67
+        # else: 
+        #     forwardReward = 886.67 / headways[0]
 
-        if headways[1] <= 886.67:
-            backwardReward = headways[1] / 886.67
-        else: 
-            backwardReward = 886.67 / headways[1]
+        # # backward headway
+        # if headways[1] <= 886.67:
+        #     backwardReward = headways[1] / 886.67
+        # else: 
+        #     backwardReward = 886.67 / headways[1]
 
-        reward = forwardReward + backwardReward
+        # reward = forwardReward + backwardReward
 
+        # print("forward reward: ", forwardReward)
+        # print("backward reward: ", backwardReward)
+        # print("total reward: ", reward)
 
+#################################################################################################
 
+        # # forward headway
+        # if headways[0] <= 886.67:
+        #     forward = headways[0] / 886.67
+        # else: 
+        #     forward = 886.67 / headways[0]
+
+        # # backward headway
+        # if headways[1] <= 886.67:
+        #     backward = headways[1] / 886.67
+        # else: 
+        #     backward = 886.67 / headways[1]
+
+        # reward = math.exp(-abs(forward - backward))
 
 #################################################################################################
         # reward function from paper using only its first term
-        # reward = math.exp(-abs(headways[0] - headways[1]))
+        # reward = math.exp(-abs(forward - backward))
         # self.tempReward += reward
         # print('reward: ', reward)
         # print('forward: ', headways[0])
