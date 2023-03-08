@@ -104,6 +104,8 @@
         <stop busStop="stop10" duration="15"/>
     </route>
 
+    <route id="traffic" edges="E0"/>
+
     <vehicle id="bus.0" type="BUS" depart="0" line="line1" route="route1"/>
     <vehicle id="bus.1" type="BUS" depart="0" line="line1" route="route6"/>
     <vehicle id="bus.2" type="BUS" depart="0" line="line1" route="route5"/>

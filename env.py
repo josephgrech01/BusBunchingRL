@@ -100,6 +100,9 @@ class SumoEnv(gym.Env):
         
         self.logValues()
 
+        
+
+
         #####################
         #   APPLY ACTION    #
         #####################
@@ -202,7 +205,7 @@ class SumoEnv(gym.Env):
 
         
         # check if episode has terminated
-        if self.gymStep > 500:#125:#1500
+        if self.gymStep > 350:#125:#1500
             print("DONE")
             done = True
             # self.df.to_csv('logWithModel.csv')
@@ -217,7 +220,7 @@ class SumoEnv(gym.Env):
             fig, ax1 = plt.subplots(1, 1)
             ax1.set_xlabel('step')
             ax1.set_ylabel('Mean waiting time')
-            ax1.set_title('NoControl')
+            ax1.set_title('No Control')
             ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
             ax1.grid()
             plt.savefig('graphs/test/noControl.jpg')
@@ -319,6 +322,18 @@ class SumoEnv(gym.Env):
         # update the passengers on board only if all buses are currently in the simulation
         if len([bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]) == numBuses:
             self.updatePassengersOnBoard()
+
+        if traci.simulation.getTime() == 1:
+            traci.vehicle.add('car1', 'traffic')
+            repeats = random.randint(1,3)
+            print("repeats: ", repeats)
+            # newRoute = ['5' for _ in range(repeats)]
+            newRoute = ['E0']
+            for _ in range(repeats):
+                newRoute.extend(['5','6','7','8','9','10','11','0','1','2','3','4'])
+            newRoute.extend(['5','6','7','8','9','E1'])
+            traci.vehicle.setRoute('car1', newRoute)
+            traci.vehicle.highlight('car1', size=10)
 
     # function which computes the state required by the gym environment
     # The state that is returned contains the stop which the bus has reached, the forward and backward headways, the number of persons waiting at each stop,
