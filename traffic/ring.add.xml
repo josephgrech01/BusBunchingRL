@@ -12,7 +12,8 @@
     <busStop id="stop11" lane="10_1" startPos="221.67" endPos="231.67" lines="line1"/>
     <busStop id="stop12" lane="11_1" startPos="221.67" endPos="231.67" lines="line1"/>
 
-    <vType id="BUS" vClass="bus" accel="2.6" decel="4.5" maxSpeed="16.67" sigma="0" length="12" minGap="3" color="1,1,0" guiShape="bus"/> <!-- max speed was 1.85, 16.67-->
+    <vType id="BUS" vClass="bus" accel="2.6" decel="4.5" maxSpeed="20.00" sigma="0" length="12" minGap="3" color="1,1,0" guiShape="bus"/> <!-- max speed was 1.85,  THIS 16.67-->
+    <vType id="traffic" vClass="passenger" color="255,0,255" guiShape="passenger"/>
 
     <route id="route1" edges="0 1 2 3 4 5 6 7 8 9 10 11" repeat="10000">
         <stop busStop="stop1" duration="15"/>

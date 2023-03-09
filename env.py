@@ -27,7 +27,7 @@ class SumoEnv(gym.Env):
         else:
             self._sumoBinary = checkBinary('sumo')
 
-        self.sumoCmd = [self._sumoBinary, "-c", "traffic/ring.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false"]
+        self.sumoCmd = [self._sumoBinary, "-c", "traffic/ring.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false", "--lanechange.overtake-right", "true"]
         if noWarnings:
             self.sumoCmd.append("--no-warnings")
 
@@ -220,10 +220,10 @@ class SumoEnv(gym.Env):
             fig, ax1 = plt.subplots(1, 1)
             ax1.set_xlabel('step')
             ax1.set_ylabel('Mean waiting time')
-            ax1.set_title('No Control')
+            ax1.set_title('PPO')
             ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
             ax1.grid()
-            plt.savefig('graphs/test/noControl.jpg')
+            plt.savefig('graphs/test/PPO.jpg')
             plt.show()
             plt.clf()
 
@@ -323,17 +323,23 @@ class SumoEnv(gym.Env):
         if len([bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]) == numBuses:
             self.updatePassengersOnBoard()
 
-        if traci.simulation.getTime() == 1:
-            traci.vehicle.add('car1', 'traffic')
+        simTime = traci.simulation.getTime()
+        if simTime % 15 == 0:
+            traci.vehicle.add('car'+str(simTime), 'traffic', typeID='traffic')
             repeats = random.randint(1,3)
-            print("repeats: ", repeats)
-            # newRoute = ['5' for _ in range(repeats)]
             newRoute = ['E0']
             for _ in range(repeats):
                 newRoute.extend(['5','6','7','8','9','10','11','0','1','2','3','4'])
             newRoute.extend(['5','6','7','8','9','E1'])
-            traci.vehicle.setRoute('car1', newRoute)
-            traci.vehicle.highlight('car1', size=10)
+            traci.vehicle.setRoute('car'+str(simTime), newRoute)
+
+            speeds = [10, 20, 30, 50]
+            speed = random.randint(0,3)
+            traci.vehicle.setSpeed('car'+str(simTime), speeds[speed])
+
+        # traci.vehicle.highlight('car1', color=(255,0,255), size=30)
+        
+        
 
     # function which computes the state required by the gym environment
     # The state that is returned contains the stop which the bus has reached, the forward and backward headways, the number of persons waiting at each stop,
