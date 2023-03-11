@@ -65,15 +65,15 @@ class SumoEnv(gym.Env):
         # the observation space:
         # contains the stop which the bus has reached, the forward and backward headways of the bus, the number of persons waiting at each stop, 
         # the stopping time required according to the number of people boarding and alighting at this stop, the current maximum passenger waiting 
-        # times at each bus stop, and the numnber of passengers on the previous, current, and following buses
-        self.low = np.array([0 for _ in range(len(self.busStops))] + [0, 0] +  [0 for _ in range(len(self.busStops))] + [0] + [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
-        self.high = np.array([1 for _ in range(len(self.busStops))] + [5320, 5320] + [float('inf') for _ in self.busStops] + [float('inf')] + [200000 for _ in self.busStops] + [85, 85, 85], dtype='float32')
-
+        # times at each bus stop, the numnber of passengers on the previous, current, and following buses, and the speed factors of the previous,
+        # current and follwing buses
+        self.low = np.array([0 for _ in range(len(self.busStops))] + [0, 0] +  [0 for _ in range(len(self.busStops))] + [0] + [0 for _ in range(len(self.busStops))] + [0, 0, 0] + [0, 0, 0], dtype='float32')
+        self.high = np.array([1 for _ in range(len(self.busStops))] + [5320, 5320] + [float('inf') for _ in self.busStops] + [float('inf')] + [200000 for _ in self.busStops] + [85, 85, 85] + [1, 1, 1], dtype='float32')
 
         self.observation_space = Box(self.low, self.high, dtype='float32')
 
-        # self.reward_range = (float('-inf'), 0)
-        self.reward_range = (0,250)
+        self.reward_range = (float('-inf'), 0)
+        # self.reward_range = (0,250)
         # self.reward_range = (0,500)
 
 
@@ -99,8 +99,6 @@ class SumoEnv(gym.Env):
         print("GYM STEP: ", self.gymStep)
         
         self.logValues()
-
-        
 
 
         #####################
@@ -190,6 +188,8 @@ class SumoEnv(gym.Env):
         self.stopTime = self.getStopTime(reachedStopBuses[0][0], reachedStopBuses[0][1])
         self.decisionBus = [reachedStopBuses[0][0], reachedStopBuses[0][1], self.stopTime]
 
+        # print("Decision bus speed: ", traci.vehicle.getSpeed(self.decisionBus[0]))
+
 
         ###############################################
         #   GET NEW OBSERVATION AND CALCULATE REWARD  #
@@ -217,15 +217,15 @@ class SumoEnv(gym.Env):
 
             meanValues = self.dfLog['mean'].tolist()
 
-            fig, ax1 = plt.subplots(1, 1)
-            ax1.set_xlabel('step')
-            ax1.set_ylabel('Mean waiting time')
-            ax1.set_title('PPO')
-            ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
-            ax1.grid()
-            plt.savefig('graphs/test/PPO.jpg')
-            plt.show()
-            plt.clf()
+            # fig, ax1 = plt.subplots(1, 1)
+            # ax1.set_xlabel('step')
+            # ax1.set_ylabel('Mean waiting time')
+            # ax1.set_title('PPO slowest speed 8')
+            # ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
+            # ax1.grid()
+            # plt.savefig('graphs/test/PPOSlowerTraffic8.jpg')
+            # plt.show()
+            # plt.clf()
 
   
         else:
@@ -333,9 +333,13 @@ class SumoEnv(gym.Env):
             newRoute.extend(['5','6','7','8','9','E1'])
             traci.vehicle.setRoute('car'+str(simTime), newRoute)
 
-            speeds = [10, 20, 30, 50]
+            speeds = [8, 20, 30, 50]
             speed = random.randint(0,3)
             traci.vehicle.setSpeed('car'+str(simTime), speeds[speed])
+
+
+
+
 
         # traci.vehicle.highlight('car1', color=(255,0,255), size=30)
         
@@ -371,11 +375,15 @@ class SumoEnv(gym.Env):
 
         numPassengers = self.getNumPassengers()
 
+        speedFactors = self.getSpeedFactors()
+
+
+
         # old observation space which also included the decision bus
         # state = stop + bus + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers
         
         
-        state = stop + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers
+        state = stop + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers + speedFactors
 
         return state
 
@@ -667,6 +675,13 @@ class SumoEnv(gym.Env):
                     self.personsWithStop[person][1] = bus 
                     # increment number of passengers of the particular bus
                     self.peopleOnBuses[int(bus[-1])][int(self.personsWithStop[person][0][-1])-1] += 1
+
+    # function which returns the speed factor (speed of bus/speed without traffic) of the leader bus, decision bus, and follower bus
+    def getSpeedFactors(self):
+        follower, leader = self.getFollowerLeader()
+
+        speedFactors = [traci.vehicle.getSpeed(leader)/20, traci.vehicle.getSpeed(self.decisionBus[0])/20, traci.vehicle.getSpeed(follower)/20]
+        return speedFactors
 
 
     def logValues(self):
