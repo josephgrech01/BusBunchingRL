@@ -205,7 +205,7 @@ class SumoEnv(gym.Env):
 
         
         # check if episode has terminated
-        if self.gymStep > 350:#125:#1500
+        if self.gymStep > 250:#125:#1500
             print("DONE")
             done = True
             # self.df.to_csv('logWithModel.csv')
@@ -220,10 +220,10 @@ class SumoEnv(gym.Env):
             # fig, ax1 = plt.subplots(1, 1)
             # ax1.set_xlabel('step')
             # ax1.set_ylabel('Mean waiting time')
-            # ax1.set_title('PPO slowest speed 8')
+            # ax1.set_title('No Control Traffic model')
             # ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
             # ax1.grid()
-            # plt.savefig('graphs/test/PPOSlowerTraffic8.jpg')
+            # plt.savefig('graphs/test/newTrained/NoControlTrafficModel.jpg')
             # plt.show()
             # plt.clf()
 
@@ -333,7 +333,7 @@ class SumoEnv(gym.Env):
             newRoute.extend(['5','6','7','8','9','E1'])
             traci.vehicle.setRoute('car'+str(simTime), newRoute)
 
-            speeds = [8, 20, 30, 50]
+            speeds = [10, 20, 30, 50]
             speed = random.randint(0,3)
             traci.vehicle.setSpeed('car'+str(simTime), speeds[speed])
 
@@ -519,8 +519,10 @@ class SumoEnv(gym.Env):
         min = 0
         max = 5320
 
-        forward = (headways[0] - min)/(max - min)
-        backward = (headways[1] - min)/(max - min)
+        # forward = (headways[0] - min)/(max - min)
+        # backward = (headways[1] - min)/(max - min)
+        forward = headways[0]
+        backward = headways[1]
 
         reward = -abs(forward - backward)
 
