@@ -1,0 +1,425 @@
+<additional>
+     <person id="p1" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+    <person id="p2" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+    <person id="p3" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+    <person id="p4" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+    <person id="p5" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+    <person id="p6" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+    <person id="p7" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+    <person id="p8" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+    <person id="p9" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+    <person id="p10" depart="0" departPos="221">
+        <walk from="0" busStop="stop1"/>
+    </person>
+
+
+    <person id="p11" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+    <person id="p12" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+    <person id="p13" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+    <person id="p14" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+    <person id="p15" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+    <person id="p16" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+    <person id="p17" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+    <person id="p18" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+    <person id="p19" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+    <person id="p20" depart="0" departPos="221">
+        <walk from="1" busStop="stop2"/>
+    </person>
+
+
+    <person id="p21" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+    <person id="p22" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+    <person id="p23" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+    <person id="p24" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+    <person id="p25" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+    <person id="p26" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+    <person id="p27" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+    <person id="p28" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+    <person id="p29" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+    <person id="p30" depart="0" departPos="221">
+        <walk from="2" busStop="stop3"/>
+    </person>
+
+
+    <person id="p31" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+    <person id="p32" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+    <person id="p33" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+    <person id="p34" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+    <person id="p35" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+    <person id="p36" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+    <person id="p37" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+    <person id="p38" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+    <person id="p39" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+    <person id="p40" depart="0" departPos="221">
+        <walk from="3" busStop="stop4"/>
+    </person>
+
+
+    <person id="p41" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+    <person id="p42" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+    <person id="p43" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+    <person id="p44" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+    <person id="p45" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+    <person id="p46" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+    <person id="p47" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+    <person id="p48" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+    <person id="p49" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+    <person id="p50" depart="0" departPos="221">
+        <walk from="4" busStop="stop5"/>
+    </person>
+
+
+    <person id="p51" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+    <person id="p52" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+    <person id="p53" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+    <person id="p54" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+    <person id="p55" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+    <person id="p56" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+    <person id="p57" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+    <person id="p58" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+    <person id="p59" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+    <person id="p60" depart="0" departPos="221">
+        <walk from="5" busStop="stop6"/>
+    </person>
+
+
+    <person id="p61" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+    <person id="p62" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+    <person id="p63" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+    <person id="p64" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+    <person id="p65" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+    <person id="p66" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+    <person id="p67" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+    <person id="p68" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+    <person id="p69" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+    <person id="p70" depart="0" departPos="221">
+        <walk from="6" busStop="stop7"/>
+    </person>
+
+
+    <person id="p71" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+    <person id="p72" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+    <person id="p73" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+    <person id="p74" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+    <person id="p75" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+    <person id="p76" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+    <person id="p77" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+    <person id="p78" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+    <person id="p79" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+    <person id="p80" depart="0" departPos="221">
+        <walk from="7" busStop="stop8"/>
+    </person>
+
+
+    <person id="p81" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+    <person id="p82" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+    <person id="p83" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+    <person id="p84" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+    <person id="p85" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+    <person id="p86" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+    <person id="p87" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+    <person id="p88" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+    <person id="p89" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+    <person id="p90" depart="0" departPos="221">
+        <walk from="8" busStop="stop9"/>
+    </person>
+
+
+    <person id="p91" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+    <person id="p92" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+    <person id="p93" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+    <person id="p94" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+    <person id="p95" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+    <person id="p96" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+    <person id="p97" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+    <person id="p98" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+    <person id="p99" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+    <person id="p100" depart="0" departPos="221">
+        <walk from="9" busStop="stop10"/>
+    </person>
+
+
+    <person id="p101" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+    <person id="p102" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+    <person id="p103" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+    <person id="p104" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+    <person id="p105" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+    <person id="p106" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+    <person id="p107" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+    <person id="p108" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+    <person id="p109" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+    <person id="p110" depart="0" departPos="221">
+        <walk from="10" busStop="stop11"/>
+    </person>
+
+
+    <person id="p111" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+    <person id="p112" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+    <person id="p113" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+    <person id="p114" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+    <person id="p115" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+    <person id="p116" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+    <person id="p117" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+    <person id="p118" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+    <person id="p119" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+    <person id="p120" depart="0" departPos="221">
+        <walk from="11" busStop="stop12"/>
+    </person>
+
+
+
+    <personFlow id="pStop1" begin="0" end="200000" departPos="200" period="exp(0.0083)">
+        <walk from="0" busStop="stop1"/>
+    </personFlow>
+    <personFlow id="pStop2" begin="0" end="200000" departPos="200" period="exp(0.0083)">
+        <walk from="1" busStop="stop2"/>
+    </personFlow>
+    <personFlow id="pStop3" begin="0" end="200000" departPos="200" period="exp(0.0133)">
+        <walk from="2" busStop="stop3"/>
+    </personFlow>
+    <personFlow id="pStop4" begin="0" end="200000" departPos="200" period="exp(0.0167)">
+        <walk from="3" busStop="stop4"/>
+    </personFlow>
+    <personFlow id="pStop5" begin="0" end="200000" departPos="200" period="exp(0.0167)">
+        <walk from="4" busStop="stop5"/>
+    </personFlow>
+    <personFlow id="pStop6" begin="0" end="200000" departPos="200" period="exp(0.05)">
+        <walk from="5" busStop="stop6"/>
+    </personFlow>
+    <personFlow id="pStop7" begin="0" end="200000" departPos="200" period="exp(0.0667)">
+        <walk from="6" busStop="stop7"/>
+    </personFlow>
+    <personFlow id="pStop8" begin="0" end="200000" departPos="200" period="exp(0.0333)">
+        <walk from="7" busStop="stop8"/>
+    </personFlow>
+    <personFlow id="pStop9" begin="0" end="200000" departPos="200" period="exp(0.0167)">
+        <walk from="8" busStop="stop9"/>
+    </personFlow>
+    <personFlow id="pStop10" begin="0" end="200000" departPos="200" period="exp(0.0108)">
+        <walk from="9" busStop="stop10"/>
+    </personFlow>
+    <personFlow id="pStop11" begin="0" end="200000" departPos="200" period="exp(0.0092)">
+        <walk from="10" busStop="stop11"/>
+    </personFlow>
+    <personFlow id="pStop12" begin="0" end="200000" departPos="200" period="exp(0.0083)">
+        <walk from="11" busStop="stop12"/>
+    </personFlow>
+
+
+</additional>

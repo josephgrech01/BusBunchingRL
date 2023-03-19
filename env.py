@@ -27,7 +27,7 @@ class SumoEnv(gym.Env):
         else:
             self._sumoBinary = checkBinary('sumo')
 
-        self.sumoCmd = [self._sumoBinary, "-c", "traffic/ring.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false", "--lanechange.overtake-right", "true"]
+        self.sumoCmd = [self._sumoBinary, "-c", "bunched/ring.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false", "--lanechange.overtake-right", "true"]
         if noWarnings:
             self.sumoCmd.append("--no-warnings")
 
@@ -217,15 +217,15 @@ class SumoEnv(gym.Env):
 
             meanValues = self.dfLog['mean'].tolist()
 
-            # fig, ax1 = plt.subplots(1, 1)
-            # ax1.set_xlabel('step')
-            # ax1.set_ylabel('Mean waiting time')
-            # ax1.set_title('No Control Traffic model')
-            # ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
-            # ax1.grid()
-            # plt.savefig('graphs/test/newTrained/NoControlTrafficModel.jpg')
-            # plt.show()
-            # plt.clf()
+            fig, ax1 = plt.subplots(1, 1)
+            ax1.set_xlabel('step')
+            ax1.set_ylabel('Mean waiting time')
+            ax1.set_title('PPO old model (not bunched)')
+            ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
+            ax1.grid()
+            plt.savefig('graphs/bunched/ppoNewModel.jpg')
+            plt.show()
+            plt.clf()
 
   
         else:
