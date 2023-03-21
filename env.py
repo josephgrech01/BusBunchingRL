@@ -27,8 +27,13 @@ class SumoEnv(gym.Env):
         else:
             self._sumoBinary = checkBinary('sumo')
 
-        self.sumoCmd = [self._sumoBinary, "-c", "bunched/ring.sumocfg", "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false", "--lanechange.overtake-right", "true"]
-        if noWarnings:
+        self.episodeNum = 0
+
+        self.config = 'traffic/ring.sumocfg'
+        # self.config = 'bunched/ring.sumocfg'
+        self.noWarnings = noWarnings
+        self.sumoCmd = [self._sumoBinary, "-c", self.config, "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false", "--lanechange.overtake-right", "true"]
+        if self.noWarnings:
             self.sumoCmd.append("--no-warnings")
 
         self.gymStep = 0
@@ -205,8 +210,8 @@ class SumoEnv(gym.Env):
 
         
         # check if episode has terminated
-        if self.gymStep > 250:#125:#1500
-            print("DONE")
+        if self.gymStep > 500:#125:#1500
+            print("DONE, episode num: ", self.episodeNum)
             done = True
             # self.df.to_csv('logWithModel.csv')
             # self.df.to_csv('logWithModelNewHW.csv')
@@ -220,10 +225,10 @@ class SumoEnv(gym.Env):
             fig, ax1 = plt.subplots(1, 1)
             ax1.set_xlabel('step')
             ax1.set_ylabel('Mean waiting time')
-            ax1.set_title('PPO old model (not bunched)')
+            ax1.set_title('PPO on Unbunched (Mixed configs)')
             ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
             ax1.grid()
-            plt.savefig('graphs/bunched/ppoNewModel.jpg')
+            plt.savefig('graphs/mixedConfigs/ppoUnbunched.jpg')
             plt.show()
             plt.clf()
 
@@ -238,7 +243,18 @@ class SumoEnv(gym.Env):
 
     # reset function required by the gym environment 
     def reset(self):
+        self.episodeNum += 1
         traci.close()
+        
+        # if self.episodeNum % 2 == 0:
+        #     self.config = 'traffic/ring.sumocfg'
+        #     print("########################################################")
+        # else:
+        #     self.config = 'bunched/ring.sumocfg'
+        #     print("--------------------------------------------------------")
+        self.sumoCmd = [self._sumoBinary, "-c", self.config, "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false", "--lanechange.overtake-right", "true"]
+        if self.noWarnings:
+            self.sumoCmd.append("--no-warnings")
         traci.start(self.sumoCmd)
         self.gymStep = 0
         self.stoppedBuses = [None for _ in range(numBuses)] 
@@ -519,10 +535,10 @@ class SumoEnv(gym.Env):
         min = 0
         max = 5320
 
-        # forward = (headways[0] - min)/(max - min)
-        # backward = (headways[1] - min)/(max - min)
-        forward = headways[0]
-        backward = headways[1]
+        forward = (headways[0] - min)/(max - min)
+        backward = (headways[1] - min)/(max - min)
+        # forward = headways[0]
+        # backward = headways[1]
 
         reward = -abs(forward - backward)
 
