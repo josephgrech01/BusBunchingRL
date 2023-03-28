@@ -1,7 +1,7 @@
 from env import SumoEnv
 import random
 
-env = SumoEnv(gui=True, noWarnings=True, traffic=False, bunched=False)
+env = SumoEnv(gui=True, noWarnings=True, epLen=500, traffic=True, bunched=False)
 
 episodes = 1
 for episode in range(1, episodes + 1):

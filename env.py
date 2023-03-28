@@ -21,7 +21,7 @@ import traci
 numBuses = 6
 
 class SumoEnv(gym.Env):
-    def __init__(self, gui=False, noWarnings=False, traffic=True, bunched=False, mixedConfigs=False):
+    def __init__(self, gui=False, noWarnings=False, epLen=250, traffic=True, bunched=False, mixedConfigs=False):
         if gui:
             self._sumoBinary = checkBinary('sumo-gui')
         else:
@@ -45,6 +45,8 @@ class SumoEnv(gym.Env):
         if self.noWarnings:
             self.sumoCmd.append("--no-warnings")
 
+        self.epLen = epLen
+
         self.gymStep = 0
        
         self.stoppedBuses = [None for _ in range(numBuses)]
@@ -62,6 +64,7 @@ class SumoEnv(gym.Env):
         
         self.bunchingGraphData = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
         self.bunchingGraphData2 = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
+        self.bunchingGraphData3 = {0:[[]], 1:[[]], 2:[[]], 3:[[]], 4:[[]], 5:[[]]}
 
         # Variable which contains the bus which has just reached a stop, the bus stop that it has reached, and the
         # stopping time required given the number of people alighting at this stop and those waiting to board
@@ -235,7 +238,7 @@ class SumoEnv(gym.Env):
 
         
         # check if episode has terminated
-        if self.gymStep > 250:#125:#1500
+        if self.gymStep > self.epLen:#125:#1500
             print("DONE, episode num: ", self.episodeNum)
             print(self.bunchingGraphData)
             done = True
@@ -257,6 +260,8 @@ class SumoEnv(gym.Env):
             # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
             # plt.show()
             # plt.clf()
+
+            print(self.bunchingGraphData3)
 
 
             for z in range(0,6):
@@ -280,6 +285,31 @@ class SumoEnv(gym.Env):
                     y_values.append(i[1])
 
                 plt.plot(x_values, y_values)
+            plt.show()
+            plt.clf()
+
+            colours = ['red', 'green', 'orange', 'blue', 'purple', 'black']
+            labelled = [False for _ in range(6)]
+            for y in range(0,6):
+                for z in self.bunchingGraphData3[y]:
+                    x_values = []
+                    y_values = []
+
+                    for i in z:
+                        x_values.append(i[0])
+                        y_values.append(i[1])
+
+                    if not labelled[y]:
+                        plt.plot(x_values, y_values, color=colours[y], label='bus '+str(y))
+                        labelled[y] = True
+                    else:
+                        plt.plot(x_values, y_values, color=colours[y])
+            plt.yticks(range(1,13))
+            plt.title("No Control - Traffic")
+            plt.xlabel('Time (sec)')
+            plt.ylabel('Bus Stop')
+            plt.legend()
+            plt.savefig('graphs/bunchingGraphs/TrafficNoControl.jpg')
             plt.show()
             plt.clf()
 
@@ -383,8 +413,18 @@ class SumoEnv(gym.Env):
 
                                 ###############
                                 busNum = int(vehicle[-1])
+
                                 self.distancesTravelled2[busNum] += 443.33
                                 self.bunchingGraphData2[busNum].append((simTime, self.distancesTravelled2[busNum]))
+
+
+
+                                if len(stop) == 5:
+                                    s = int(stop[-1])
+                                else:
+                                    s = int(stop[-2:])
+                                self.bunchingGraphData3[busNum][-1].append((simTime, s))
+
 
                         else:
                             # update buses which have left a bus stop such that they are no longer marked as stopped
@@ -393,7 +433,24 @@ class SumoEnv(gym.Env):
                                 ########################
                                 busNum = int(vehicle[-1])
                                 self.bunchingGraphData2[busNum].append((simTime, self.distancesTravelled2[busNum]))
-        
+
+
+
+                                if len(stop) == 5:
+                                    s = int(stop[-1])
+                                else:
+                                    s = int(stop[-2:])   
+
+
+                                self.bunchingGraphData3[busNum][-1].append((simTime, s))
+
+                                if s == 12:
+                                    self.bunchingGraphData3[busNum].append([])
+
+                                # if s != 12:
+                                #     self.bunchingGraphData3[busNum][-1].append((simTime, s))
+                                # else:
+                                #     self.bunchingGraphData3[busNum].append([(simTime, s)])     
         return reached
 
 
