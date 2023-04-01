@@ -21,7 +21,7 @@ import traci
 numBuses = 6
 
 class SumoEnv(gym.Env):
-    def __init__(self, gui=False, noWarnings=False, epLen=250, traffic=True, bunched=False, mixedConfigs=False):
+    def __init__(self, gui=False, noWarnings=False, epLen=250, traffic=0, bunched=False, mixedConfigs=False):
         if gui:
             self._sumoBinary = checkBinary('sumo-gui')
         else:
@@ -37,7 +37,7 @@ class SumoEnv(gym.Env):
         else:
             self.config = 'traffic/ring.sumocfg'
 
-        if not traffic:
+        if self.traffic == 0:
             self.config = 'ring.sumocfg'
 
         self.noWarnings = noWarnings
@@ -46,6 +46,11 @@ class SumoEnv(gym.Env):
             self.sumoCmd.append("--no-warnings")
 
         self.epLen = epLen
+
+        if self.traffic == -1:
+            self.lowestTrafficSpeed = random.randint(7,10)
+        else:
+            self.lowestTrafficSpeed = self.traffic
 
         self.gymStep = 0
        
@@ -98,7 +103,7 @@ class SumoEnv(gym.Env):
         # the stopping time required according to the number of people boarding and alighting at this stop, the current maximum passenger waiting 
         # times at each bus stop, the numnber of passengers on the previous, current, and following buses, and the speed factors of the previous,
         # current and follwing buses
-        if self.traffic:
+        if self.traffic != 0:
             self.low = np.array([0 for _ in range(len(self.busStops))] + [0, 0] +  [0 for _ in range(len(self.busStops))] + [0] + [0 for _ in range(len(self.busStops))] + [0, 0, 0] + [0, 0, 0], dtype='float32')
             self.high = np.array([1 for _ in range(len(self.busStops))] + [5320, 5320] + [float('inf') for _ in self.busStops] + [float('inf')] + [200000 for _ in self.busStops] + [85, 85, 85] + [1, 1, 1], dtype='float32')
         else:
@@ -124,7 +129,8 @@ class SumoEnv(gym.Env):
         # time = now.strftime("%H:%M:%S")
         # self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':"NA", 'Headway':"NA", 'Time':time}])], ignore_index=True)
 
-        self.dfLog = pd.DataFrame(columns=['mean'])
+        self.dfLog = pd.DataFrame(columns=['meanWaitTime', 'action'])
+        self.headwaySDLog = pd.DataFrame(columns=['headwaySD'])
 
     # step function required by the gym environment
     # each each step signifies an arrival of a bus at a bus stop 
@@ -133,7 +139,7 @@ class SumoEnv(gym.Env):
         self.gymStep += 1
         print("GYM STEP: ", self.gymStep)
         
-        self.logValues()
+        self.logValues(action)
 
         #####################
         #   APPLY ACTION    #
@@ -238,56 +244,75 @@ class SumoEnv(gym.Env):
 
         
         # check if episode has terminated
-        if self.gymStep > self.epLen:#125:#1500
+        if self.gymStep > self.epLen:#125:#1500meanWaitTime
             print("DONE, episode num: ", self.episodeNum)
-            print(self.bunchingGraphData)
+            # print(self.bunchingGraphData)
             done = True
             # self.df.to_csv('logWithModel.csv')
             # self.df.to_csv('logWithModelNewHW.csv')
             # self.df.to_csv('logNewHW.csv')
             # self.dfBunching.to_csv('bunchingGUIHighSpeedNewModelNewHW.csv')
 
-            self.dfLog.to_csv('waitTimeValues.csv')
+            self.dfLog.to_csv('results/csvs/TRPOTraffic.csv')
+            self.headwaySDLog.to_csv('results/csvs/TRPOSDTraffic.csv')
 
-            meanValues = self.dfLog['mean'].tolist()
+            meanValues = self.dfLog['meanWaitTime'].tolist()
+
+            fig, ax1 = plt.subplots(1, 1)
+            ax1.set_xlabel('Step')
+            ax1.set_ylabel('Mean waiting time (mins)')
+            ax1.set_title('TRPO with Traffic')
+            ax1.plot(range(1, len(meanValues) + 1), [(mean*9)/60 for mean in meanValues], color='blue', linestyle='-', linewidth=3, label='train')
+            ax1.grid()
+            # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
+            plt.show()
+            plt.clf()
+
+
+            sd = self.headwaySDLog['headwaySD'].tolist()
+
 
             # fig, ax1 = plt.subplots(1, 1)
-            # ax1.set_xlabel('step')
-            # ax1.set_ylabel('Mean waiting time')
-            # ax1.set_title('TRPO on Bunched (Mixed configs)')
-            # ax1.plot(range(1, len(meanValues) + 1), meanValues, color='blue', linestyle='-', linewidth=3, label='train')
+            # ax1.set_xlabel('Step')
+            # ax1.set_ylabel('Headway Variance')
+            # # ax1.set_title('TRPO on Bunched (Mixed configs)')
+            # ax1.plot(range(1, len(sd) + 1), sd, color='blue', linestyle='-', linewidth=3, label='train')
             # ax1.grid()
-            # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
+            # # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
             # plt.show()
             # plt.clf()
 
-            print(self.bunchingGraphData3)
 
 
-            for z in range(0,6):
-                x_values = []
-                y_values = []
 
-                for i in self.bunchingGraphData[z]:
-                    x_values.append(i[0])
-                    y_values.append(i[1])
+            # print(self.bunchingGraphData3)
 
-                plt.plot(x_values, y_values)
-            plt.show()
-            plt.clf()
 
-            for z in range(0,6):
-                x_values = []
-                y_values = []
+            # for z in range(0,6):
+            #     x_values = []
+            #     y_values = []
 
-                for i in self.bunchingGraphData2[z]:
-                    x_values.append(i[0])
-                    y_values.append(i[1])
+            #     for i in self.bunchingGraphData[z]:
+            #         x_values.append(i[0])
+            #         y_values.append(i[1])
 
-                plt.plot(x_values, y_values)
-            plt.show()
-            plt.clf()
+            #     plt.plot(x_values, y_values)
+            # plt.show()
+            # plt.clf()
 
+            # for z in range(0,6):
+            #     x_values = []
+            #     y_values = []
+
+            #     for i in self.bunchingGraphData2[z]:
+            #         x_values.append(i[0])
+            #         y_values.append(i[1])
+
+            #     plt.plot(x_values, y_values)
+            # plt.show()
+            # plt.clf()
+
+            # BUNCHING GRAPH
             colours = ['red', 'green', 'orange', 'blue', 'purple', 'black']
             labelled = [False for _ in range(6)]
             for y in range(0,6):
@@ -296,7 +321,7 @@ class SumoEnv(gym.Env):
                     y_values = []
 
                     for i in z:
-                        x_values.append(i[0])
+                        x_values.append((i[0]*9)/60)
                         y_values.append(i[1])
 
                     if not labelled[y]:
@@ -305,13 +330,41 @@ class SumoEnv(gym.Env):
                     else:
                         plt.plot(x_values, y_values, color=colours[y])
             plt.yticks(range(1,13))
-            plt.title("No Control - Traffic")
-            plt.xlabel('Time (sec)')
+            plt.title("TRPO with Traffic")
+            plt.xlabel('Time (mins)')
             plt.ylabel('Bus Stop')
             plt.legend()
-            plt.savefig('graphs/bunchingGraphs/TrafficNoControl.jpg')
+            plt.savefig('results/TRPOTrafficBunching.jpg')
             plt.show()
             plt.clf()
+
+
+            # pie chart showing the actions taken
+            values = []
+            labels = []
+            actions = self.dfLog['action'].tolist()
+            hold = actions.count('Hold') / len(actions)
+            if hold != 0:
+                values.append(hold)
+                labels.append("Hold")
+            skip = actions.count('Skip') / len(actions)
+            if skip != 0:
+                values.append(skip)
+                labels.append("Skip")
+            noAction = actions.count('No action') / len(actions)
+            if noAction != 0:
+                values.append(noAction)
+                labels.append("No action")
+    
+
+            plt.pie(values, labels=labels, autopct='%1.1f%%')
+            plt.title('Actions (TRPO, Traffic).jpg')
+            plt.savefig('results/TRPOTrafficActions.jpg')
+            plt.show()
+            plt.clf()
+
+
+
 
 
   
@@ -347,6 +400,15 @@ class SumoEnv(gym.Env):
 
         self.sd = 0
         self.stopTime = 0
+
+        self.bunchingGraphData = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
+        self.bunchingGraphData2 = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
+        self.bunchingGraphData3 = {0:[[]], 1:[[]], 2:[[]], 3:[[]], 4:[[]], 5:[[]]}
+
+        if self.traffic == -1:
+            self.lowestTrafficSpeed = random.randint(7,10)
+        else:
+            self.lowestTrafficSpeed = self.traffic
 
         # sumo step until all buses are in the simulation
         while len(traci.vehicle.getIDList()) < numBuses:
@@ -425,6 +487,10 @@ class SumoEnv(gym.Env):
                                     s = int(stop[-2:])
                                 self.bunchingGraphData3[busNum][-1].append((simTime, s))
 
+                                #### 
+
+
+
 
                         else:
                             # update buses which have left a bus stop such that they are no longer marked as stopped
@@ -451,6 +517,29 @@ class SumoEnv(gym.Env):
                                 #     self.bunchingGraphData3[busNum][-1].append((simTime, s))
                                 # else:
                                 #     self.bunchingGraphData3[busNum].append([(simTime, s)])     
+        
+        if reached:
+            headways = []
+            for bus in traci.vehicle.getIDList():
+                if bus[0:3] == "bus":
+                    follower, leader = self.getFollowerLeader(bus=[bus])
+
+                    forwardHeadway = self.getForwardHeadway(leader, bus)
+
+                    backwardHeadway = self.getForwardHeadway(bus, follower)
+                    headways.append(abs(forwardHeadway - backwardHeadway))
+
+            average = sum(headways)/len(headways)
+            deviations = [((headway - average)**2) for headway in headways]
+            variance = sum(deviations) / len(headways)
+            sd = math.sqrt(variance)
+
+            self.headwaySDLog = pd.concat([self.headwaySDLog, pd.DataFrame.from_records([{'headwaySD':sd}])])
+
+
+
+        
+        
         return reached
 
 
@@ -464,7 +553,7 @@ class SumoEnv(gym.Env):
 
         simTime = traci.simulation.getTime()
 
-        if self.traffic:
+        if self.traffic != 0:
             if simTime % 15 == 0:
                 traci.vehicle.add('car'+str(simTime), 'traffic', typeID='traffic')
                 repeats = random.randint(1,3)
@@ -474,9 +563,17 @@ class SumoEnv(gym.Env):
                 newRoute.extend(['5','6','7','8','9','E1'])
                 traci.vehicle.setRoute('car'+str(simTime), newRoute)
 
-                speeds = [10, 20, 30, 50]
+                # if self.traffic == -1:
+                #     lowest = random.randint(7,10)
+                # else:
+                #     lowest = self.traffic
+
+                speeds = [self.lowestTrafficSpeed, 20, 30, 50]
                 speed = random.randint(0,3)
                 traci.vehicle.setSpeed('car'+str(simTime), speeds[speed])
+
+
+                print("LOWEST: {}, SPEED: {}".format(self.lowestTrafficSpeed, speeds[speed]))
 
         # traci.vehicle.highlight('car1', color=(255,0,255), size=30)
 
@@ -536,7 +633,7 @@ class SumoEnv(gym.Env):
         # old observation space which also included the decision bus
         # state = stop + bus + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers
         
-        if self.traffic:
+        if self.traffic != 0:
             state = stop + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers + speedFactors
         else:
             state = stop + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers
@@ -604,20 +701,26 @@ class SumoEnv(gym.Env):
         return h
             
     # function which returns the id of the leader and follower buses of the decision bus
-    def getFollowerLeader(self):
+    def getFollowerLeader(self, bus=[]):
+
+        if bus:
+            b = bus[0][-1]
+        else:
+            b = self.decisionBus[0][-1]
+        
         # if the decision bus is the last bus, then the follower is the first bus, hence it is set to zero
-        if int(self.decisionBus[0][-1]) + 1 == len(self.buses):
+        if int(b) + 1 == len(self.buses):
             follower = "bus.0"
         # otherwise just increment the bus number
         else:
-            follower = "bus." + str(int(self.decisionBus[0][-1]) + 1)
+            follower = "bus." + str(int(b) + 1)
 
         # if the decision bus is the first bus, then the leader is the last bus, hence set to the number of buses minus 1
-        if int(self.decisionBus[0][-1]) == 0:
+        if int(b) == 0:
             leader = "bus." + str(len(self.buses) - 1)
         # otherwise just decrement the bus number
         else:
-            leader = "bus." + str(int(self.decisionBus[0][-1]) - 1)
+            leader = "bus." + str(int(b) - 1)
 
         return follower, leader
 
@@ -842,14 +945,13 @@ class SumoEnv(gym.Env):
         return speedFactors
 
 
-    def logValues(self):
+    def logValues(self, action):
         maxWaitTimes = self.getMaxWaitTimeOnStops()    
         mean = sum(maxWaitTimes)/len(maxWaitTimes)
-        # print("sum: ", sum(maxWaitTimes))
-        # print("len: ", len(maxWaitTimes))
-        # print("mean: ", mean)
+        
+        actions = ['Hold', 'Skip', 'No action']
 
-        self.dfLog = pd.concat([self.dfLog, pd.DataFrame.from_records([{'mean':mean}])], ignore_index=True)
+        self.dfLog = pd.concat([self.dfLog, pd.DataFrame.from_records([{'meanWaitTime':mean, 'action':actions[action]}])], ignore_index=True)
 
 
 

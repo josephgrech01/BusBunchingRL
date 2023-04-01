@@ -2,7 +2,7 @@ from sb3_contrib import TRPO
 
 from env import SumoEnv
 
-e = SumoEnv(gui=True, noWarnings=True, bunched=False, traffic=True)
+e = SumoEnv(gui=True, noWarnings=True, epLen=500, bunched=False, traffic=10)
 
 model = TRPO.load("trafficEplen250/mixedConfigs/reward_paper_lowest10_NoExp/trpo_Nobusvectorinstate_NoWaitTime")
 
