@@ -253,8 +253,8 @@ class SumoEnv(gym.Env):
             # self.df.to_csv('logNewHW.csv')
             # self.dfBunching.to_csv('bunchingGUIHighSpeedNewModelNewHW.csv')
 
-            self.dfLog.to_csv('results/csvs/TRPOTraffic.csv')
-            self.headwaySDLog.to_csv('results/csvs/TRPOSDTraffic.csv')
+            self.dfLog.to_csv('results/csvs/noControlTrafficBunched.csv')
+            self.headwaySDLog.to_csv('results/csvs/noControlSDTrafficBunched.csv')
 
             meanValues = self.dfLog['meanWaitTime'].tolist()
 
@@ -330,11 +330,11 @@ class SumoEnv(gym.Env):
                     else:
                         plt.plot(x_values, y_values, color=colours[y])
             plt.yticks(range(1,13))
-            plt.title("TRPO with Traffic")
+            plt.title("No Control with Traffic, Bunched")
             plt.xlabel('Time (mins)')
             plt.ylabel('Bus Stop')
             plt.legend()
-            plt.savefig('results/TRPOTrafficBunching.jpg')
+            plt.savefig('results/test/noControlTrafficBunchedBunching.jpg')
             plt.show()
             plt.clf()
 
@@ -359,7 +359,7 @@ class SumoEnv(gym.Env):
 
             plt.pie(values, labels=labels, autopct='%1.1f%%')
             plt.title('Actions (TRPO, Traffic).jpg')
-            plt.savefig('results/TRPOTrafficActions.jpg')
+            # plt.savefig('results/TRPOTrafficActions.jpg')
             plt.show()
             plt.clf()
 

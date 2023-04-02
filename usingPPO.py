@@ -2,7 +2,7 @@ from stable_baselines3 import PPO
 
 from env import SumoEnv
 
-e = SumoEnv(gui=True, noWarnings=True, epLen=500, traffic=10, bunched=True)
+e = SumoEnv(gui=True, noWarnings=True, epLen=500, traffic=10, bunched=False)
 
 # model = PPO.load("eplen250/ppo_Ring_Speed60NewHeadway_Nobusvectorinstate_NoWaitTime_Alpha1_PaperHeadway.zip") #no traffic
 # model = PPO.load("eplen250/reward_0_2/ppo_Speed60_Nobusvectorinstate_NoWaitTimeCONTINUED")
