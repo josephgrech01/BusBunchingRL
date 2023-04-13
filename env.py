@@ -253,20 +253,20 @@ class SumoEnv(gym.Env):
             # self.df.to_csv('logNewHW.csv')
             # self.dfBunching.to_csv('bunchingGUIHighSpeedNewModelNewHW.csv')
 
-            self.dfLog.to_csv('results/csvs/noControlTrafficBunched.csv')
-            self.headwaySDLog.to_csv('results/csvs/noControlSDTrafficBunched.csv')
+            # self.dfLog.to_csv('results/csvs/noControlTrafficBunched.csv')
+            # self.headwaySDLog.to_csv('results/csvs/noControlSDTrafficBunched.csv')
 
             meanValues = self.dfLog['meanWaitTime'].tolist()
 
-            fig, ax1 = plt.subplots(1, 1)
-            ax1.set_xlabel('Step')
-            ax1.set_ylabel('Mean waiting time (mins)')
-            ax1.set_title('TRPO with Traffic')
-            ax1.plot(range(1, len(meanValues) + 1), [(mean*9)/60 for mean in meanValues], color='blue', linestyle='-', linewidth=3, label='train')
-            ax1.grid()
-            # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
-            plt.show()
-            plt.clf()
+            # fig, ax1 = plt.subplots(1, 1)
+            # ax1.set_xlabel('Step')
+            # ax1.set_ylabel('Mean waiting time (mins)')
+            # ax1.set_title('TRPO with Traffic')
+            # ax1.plot(range(1, len(meanValues) + 1), [(mean*9)/60 for mean in meanValues], color='blue', linestyle='-', linewidth=3, label='train')
+            # ax1.grid()
+            # # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
+            # plt.show()
+            # plt.clf()
 
 
             sd = self.headwaySDLog['headwaySD'].tolist()
@@ -330,38 +330,38 @@ class SumoEnv(gym.Env):
                     else:
                         plt.plot(x_values, y_values, color=colours[y])
             plt.yticks(range(1,13))
-            plt.title("No Control with Traffic, Bunched")
+            plt.title("PPO with Traffic, Bunched")
             plt.xlabel('Time (mins)')
             plt.ylabel('Bus Stop')
-            plt.legend()
-            plt.savefig('results/test/noControlTrafficBunchedBunching.jpg')
+            plt.legend(loc=4)
+            # plt.savefig('results/test/PPOTrafficBunchedBunching.jpg')
             plt.show()
             plt.clf()
 
 
-            # pie chart showing the actions taken
-            values = []
-            labels = []
-            actions = self.dfLog['action'].tolist()
-            hold = actions.count('Hold') / len(actions)
-            if hold != 0:
-                values.append(hold)
-                labels.append("Hold")
-            skip = actions.count('Skip') / len(actions)
-            if skip != 0:
-                values.append(skip)
-                labels.append("Skip")
-            noAction = actions.count('No action') / len(actions)
-            if noAction != 0:
-                values.append(noAction)
-                labels.append("No action")
+            # # pie chart showing the actions taken
+            # values = []
+            # labels = []
+            # actions = self.dfLog['action'].tolist()
+            # hold = actions.count('Hold') / len(actions)
+            # if hold != 0:
+            #     values.append(hold)
+            #     labels.append("Hold")
+            # skip = actions.count('Skip') / len(actions)
+            # if skip != 0:
+            #     values.append(skip)
+            #     labels.append("Skip")
+            # noAction = actions.count('No action') / len(actions)
+            # if noAction != 0:
+            #     values.append(noAction)
+            #     labels.append("No action")
     
 
-            plt.pie(values, labels=labels, autopct='%1.1f%%')
-            plt.title('Actions (TRPO, Traffic).jpg')
-            # plt.savefig('results/TRPOTrafficActions.jpg')
-            plt.show()
-            plt.clf()
+            # plt.pie(values, labels=labels, autopct='%1.1f%%')
+            # plt.title('Actions (TRPO, Traffic).jpg')
+            # # plt.savefig('results/TRPOTrafficActions.jpg')
+            # plt.show()
+            # plt.clf()
 
 
 
