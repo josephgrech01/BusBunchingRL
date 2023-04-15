@@ -253,15 +253,15 @@ class SumoEnv(gym.Env):
             # self.df.to_csv('logNewHW.csv')
             # self.dfBunching.to_csv('bunchingGUIHighSpeedNewModelNewHW.csv')
 
-            # self.dfLog.to_csv('results/csvs/noControlTrafficBunched.csv')
-            # self.headwaySDLog.to_csv('results/csvs/noControlSDTrafficBunched.csv')
+            self.dfLog.to_csv('results/csvs/DQNTrafficBunched.csv')
+            self.headwaySDLog.to_csv('results/csvs/DQNSDTrafficBunched.csv')
 
             meanValues = self.dfLog['meanWaitTime'].tolist()
 
             # fig, ax1 = plt.subplots(1, 1)
             # ax1.set_xlabel('Step')
             # ax1.set_ylabel('Mean waiting time (mins)')
-            # ax1.set_title('TRPO with Traffic')
+            # ax1.set_title('DQN with Traffic')
             # ax1.plot(range(1, len(meanValues) + 1), [(mean*9)/60 for mean in meanValues], color='blue', linestyle='-', linewidth=3, label='train')
             # ax1.grid()
             # # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
@@ -330,11 +330,11 @@ class SumoEnv(gym.Env):
                     else:
                         plt.plot(x_values, y_values, color=colours[y])
             plt.yticks(range(1,13))
-            plt.title("PPO with Traffic, Bunched")
+            plt.title("DQN with Traffic, Bunched")
             plt.xlabel('Time (mins)')
             plt.ylabel('Bus Stop')
             plt.legend(loc=4)
-            # plt.savefig('results/test/PPOTrafficBunchedBunching.jpg')
+            plt.savefig('results/test/DQNTrafficBunchedBunching.jpg')
             plt.show()
             plt.clf()
 
