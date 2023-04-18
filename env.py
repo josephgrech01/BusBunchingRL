@@ -129,7 +129,7 @@ class SumoEnv(gym.Env):
         # time = now.strftime("%H:%M:%S")
         # self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':"NA", 'Headway':"NA", 'Time':time}])], ignore_index=True)
 
-        self.dfLog = pd.DataFrame(columns=['meanWaitTime', 'action'])
+        self.dfLog = pd.DataFrame(columns=['meanWaitTime', 'action', 'dispersion'])
         self.headwaySDLog = pd.DataFrame(columns=['headwaySD'])
 
     # step function required by the gym environment
@@ -253,8 +253,8 @@ class SumoEnv(gym.Env):
             # self.df.to_csv('logNewHW.csv')
             # self.dfBunching.to_csv('bunchingGUIHighSpeedNewModelNewHW.csv')
 
-            self.dfLog.to_csv('results/csvs/DQNTrafficBunched.csv')
-            self.headwaySDLog.to_csv('results/csvs/DQNSDTrafficBunched.csv')
+            # self.dfLog.to_csv('results/csvs/rbcTrafficBunched.csv')
+            # self.headwaySDLog.to_csv('results/csvs/rbcSDTrafficBunched.csv')
 
             meanValues = self.dfLog['meanWaitTime'].tolist()
 
@@ -281,6 +281,17 @@ class SumoEnv(gym.Env):
             # # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
             # plt.show()
             # plt.clf()
+
+            disp = self.dfLog['dispersion'].tolist()
+            fig, ax1 = plt.subplots(1, 1)
+            ax1.set_xlabel('Step')
+            ax1.set_ylabel('Occupancy Dispersion')
+            ax1.set_title('PPO No Traffic')
+            ax1.plot(range(1, len(disp) + 1), disp, color='blue', linestyle='-', linewidth=1.5, label='train')
+            ax1.grid()
+            # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
+            plt.show()
+            plt.clf()
 
 
 
@@ -313,30 +324,30 @@ class SumoEnv(gym.Env):
             # plt.clf()
 
             # BUNCHING GRAPH
-            colours = ['red', 'green', 'orange', 'blue', 'purple', 'black']
-            labelled = [False for _ in range(6)]
-            for y in range(0,6):
-                for z in self.bunchingGraphData3[y]:
-                    x_values = []
-                    y_values = []
+            # colours = ['red', 'green', 'orange', 'blue', 'purple', 'black']
+            # labelled = [False for _ in range(6)]
+            # for y in range(0,6):
+            #     for z in self.bunchingGraphData3[y]:
+            #         x_values = []
+            #         y_values = []
 
-                    for i in z:
-                        x_values.append((i[0]*9)/60)
-                        y_values.append(i[1])
+            #         for i in z:
+            #             x_values.append((i[0]*9)/60)
+            #             y_values.append(i[1])
 
-                    if not labelled[y]:
-                        plt.plot(x_values, y_values, color=colours[y], label='bus '+str(y))
-                        labelled[y] = True
-                    else:
-                        plt.plot(x_values, y_values, color=colours[y])
-            plt.yticks(range(1,13))
-            plt.title("DQN with Traffic, Bunched")
-            plt.xlabel('Time (mins)')
-            plt.ylabel('Bus Stop')
-            plt.legend(loc=4)
-            plt.savefig('results/test/DQNTrafficBunchedBunching.jpg')
-            plt.show()
-            plt.clf()
+            #         if not labelled[y]:
+            #             plt.plot(x_values, y_values, color=colours[y], label='bus '+str(y))
+            #             labelled[y] = True
+            #         else:
+            #             plt.plot(x_values, y_values, color=colours[y])
+            # plt.yticks(range(1,13))
+            # plt.title("Rule-Based Control with Traffic, Bunched")
+            # plt.xlabel('Time (mins)')
+            # plt.ylabel('Bus Stop')
+            # plt.legend(loc=4)
+            # plt.savefig('results/test/rbcTrafficBunchedBunching.jpg')
+            # plt.show()
+            # plt.clf()
 
 
             # # pie chart showing the actions taken
@@ -951,9 +962,28 @@ class SumoEnv(gym.Env):
         
         actions = ['Hold', 'Skip', 'No action']
 
-        self.dfLog = pd.concat([self.dfLog, pd.DataFrame.from_records([{'meanWaitTime':mean, 'action':actions[action]}])], ignore_index=True)
+        occDisp = self.occupancyDispersion()
 
+        self.dfLog = pd.concat([self.dfLog, pd.DataFrame.from_records([{'meanWaitTime':mean, 'action':actions[action], 'dispersion':occDisp}])], ignore_index=True)
 
+    # occupancy dispersion as calculated in Wang and Sun (2020)
+    def occupancyDispersion(self):
+        passengers = []
+        for bus in self.buses:
+            passengers.append(traci.vehicle.getPersonNumber(bus))
+
+        average = sum(passengers)/len(passengers)
+        if average == 0:
+            return 0
+
+        deviations = [((p - average)**2) for p in passengers]
+        variance = sum(deviations) / len(passengers)
+
+        occDisp = variance / average
+
+        return occDisp
+
+        
 
 
 
