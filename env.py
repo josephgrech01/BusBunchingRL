@@ -122,6 +122,9 @@ class SumoEnv(gym.Env):
         self.tempReward = 0
 
 
+        self.sdVal = 0
+
+
         
         self.df = pd.DataFrame(columns=['HeadwayRew', 'SD', 'Reward', 'Action'])
         self.dfBunching = pd.DataFrame(columns=['Bus','Headway','Time'])
@@ -129,7 +132,7 @@ class SumoEnv(gym.Env):
         # time = now.strftime("%H:%M:%S")
         # self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':"NA", 'Headway':"NA", 'Time':time}])], ignore_index=True)
 
-        self.dfLog = pd.DataFrame(columns=['meanWaitTime', 'action', 'dispersion'])
+        self.dfLog = pd.DataFrame(columns=['meanWaitTime', 'action', 'dispersion', 'headwaySD'])
         self.headwaySDLog = pd.DataFrame(columns=['headwaySD'])
 
     # step function required by the gym environment
@@ -253,7 +256,7 @@ class SumoEnv(gym.Env):
             # self.df.to_csv('logNewHW.csv')
             # self.dfBunching.to_csv('bunchingGUIHighSpeedNewModelNewHW.csv')
 
-            # self.dfLog.to_csv('results/csvs/rbcTrafficBunched.csv')
+            self.dfLog.to_csv('results/final/csvs/ppo/TrafficBunched.csv')
             # self.headwaySDLog.to_csv('results/csvs/rbcSDTrafficBunched.csv')
 
             meanValues = self.dfLog['meanWaitTime'].tolist()
@@ -269,29 +272,29 @@ class SumoEnv(gym.Env):
             # plt.clf()
 
 
-            sd = self.headwaySDLog['headwaySD'].tolist()
+            sd = self.dfLog['headwaySD'].tolist()
 
 
-            # fig, ax1 = plt.subplots(1, 1)
-            # ax1.set_xlabel('Step')
-            # ax1.set_ylabel('Headway Variance')
-            # # ax1.set_title('TRPO on Bunched (Mixed configs)')
-            # ax1.plot(range(1, len(sd) + 1), sd, color='blue', linestyle='-', linewidth=3, label='train')
-            # ax1.grid()
-            # # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
-            # plt.show()
-            # plt.clf()
-
-            disp = self.dfLog['dispersion'].tolist()
             fig, ax1 = plt.subplots(1, 1)
             ax1.set_xlabel('Step')
-            ax1.set_ylabel('Occupancy Dispersion')
-            ax1.set_title('PPO No Traffic')
-            ax1.plot(range(1, len(disp) + 1), disp, color='blue', linestyle='-', linewidth=1.5, label='train')
+            # ax1.set_ylabel('Headway Variance')
+            # ax1.set_title('TRPO on Bunched (Mixed configs)')
+            ax1.plot(range(1, len(sd) + 1), sd, color='blue', linestyle='-', linewidth=3, label='train')
             ax1.grid()
             # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
             plt.show()
             plt.clf()
+
+            # disp = self.dfLog['dispersion'].tolist()
+            # fig, ax1 = plt.subplots(1, 1)
+            # ax1.set_xlabel('Step')
+            # ax1.set_ylabel('Occupancy Dispersion')
+            # ax1.set_title('PPO No Traffic')
+            # ax1.plot(range(1, len(disp) + 1), disp, color='blue', linestyle='-', linewidth=1.5, label='train')
+            # ax1.grid()
+            # # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
+            # plt.show()
+            # plt.clf()
 
 
 
@@ -324,55 +327,55 @@ class SumoEnv(gym.Env):
             # plt.clf()
 
             # BUNCHING GRAPH
-            # colours = ['red', 'green', 'orange', 'blue', 'purple', 'black']
-            # labelled = [False for _ in range(6)]
-            # for y in range(0,6):
-            #     for z in self.bunchingGraphData3[y]:
-            #         x_values = []
-            #         y_values = []
+            colours = ['red', 'green', 'orange', 'blue', 'purple', 'black']
+            labelled = [False for _ in range(6)]
+            for y in range(0,6):
+                for z in self.bunchingGraphData3[y]:
+                    x_values = []
+                    y_values = []
 
-            #         for i in z:
-            #             x_values.append((i[0]*9)/60)
-            #             y_values.append(i[1])
+                    for i in z:
+                        x_values.append((i[0]*9)/60)
+                        y_values.append(i[1])
 
-            #         if not labelled[y]:
-            #             plt.plot(x_values, y_values, color=colours[y], label='bus '+str(y))
-            #             labelled[y] = True
-            #         else:
-            #             plt.plot(x_values, y_values, color=colours[y])
-            # plt.yticks(range(1,13))
-            # plt.title("Rule-Based Control with Traffic, Bunched")
-            # plt.xlabel('Time (mins)')
-            # plt.ylabel('Bus Stop')
-            # plt.legend(loc=4)
-            # plt.savefig('results/test/rbcTrafficBunchedBunching.jpg')
-            # plt.show()
-            # plt.clf()
+                    if not labelled[y]:
+                        plt.plot(x_values, y_values, color=colours[y], label='bus '+str(y))
+                        labelled[y] = True
+                    else:
+                        plt.plot(x_values, y_values, color=colours[y])
+            plt.yticks(range(1,13))
+            plt.title("PPO with Traffic, Bunched")
+            plt.xlabel('Time (mins)')
+            plt.ylabel('Bus Stop')
+            plt.legend(loc=4)
+            plt.savefig('results/final/bunching/ppo/TrafficBunchedBunching.jpg')
+            plt.show()
+            plt.clf()
 
 
-            # # pie chart showing the actions taken
-            # values = []
-            # labels = []
-            # actions = self.dfLog['action'].tolist()
-            # hold = actions.count('Hold') / len(actions)
-            # if hold != 0:
-            #     values.append(hold)
-            #     labels.append("Hold")
-            # skip = actions.count('Skip') / len(actions)
-            # if skip != 0:
-            #     values.append(skip)
-            #     labels.append("Skip")
-            # noAction = actions.count('No action') / len(actions)
-            # if noAction != 0:
-            #     values.append(noAction)
-            #     labels.append("No action")
+            # pie chart showing the actions taken
+            values = []
+            labels = []
+            actions = self.dfLog['action'].tolist()
+            hold = actions.count('Hold') / len(actions)
+            if hold != 0:
+                values.append(hold)
+                labels.append("Hold")
+            skip = actions.count('Skip') / len(actions)
+            if skip != 0:
+                values.append(skip)
+                labels.append("Skip")
+            noAction = actions.count('No action') / len(actions)
+            if noAction != 0:
+                values.append(noAction)
+                labels.append("No action")
     
 
-            # plt.pie(values, labels=labels, autopct='%1.1f%%')
-            # plt.title('Actions (TRPO, Traffic).jpg')
-            # # plt.savefig('results/TRPOTrafficActions.jpg')
-            # plt.show()
-            # plt.clf()
+            plt.pie(values, labels=labels, autopct='%1.1f%%')
+            plt.title('Actions (PPO, Traffic, Bunched).jpg')
+            plt.savefig('results/final/actions/ppo/TrafficBunchedActions.jpg')
+            plt.show()
+            plt.clf()
 
 
 
@@ -411,6 +414,8 @@ class SumoEnv(gym.Env):
 
         self.sd = 0
         self.stopTime = 0
+
+        self.sdVal = 0
 
         self.bunchingGraphData = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
         self.bunchingGraphData2 = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
@@ -545,7 +550,9 @@ class SumoEnv(gym.Env):
             variance = sum(deviations) / len(headways)
             sd = math.sqrt(variance)
 
-            self.headwaySDLog = pd.concat([self.headwaySDLog, pd.DataFrame.from_records([{'headwaySD':sd}])])
+            self.sdVal = sd
+
+            # self.headwaySDLog = pd.concat([self.headwaySDLog, pd.DataFrame.from_records([{'headwaySD':sd}])])
 
 
 
@@ -964,7 +971,7 @@ class SumoEnv(gym.Env):
 
         occDisp = self.occupancyDispersion()
 
-        self.dfLog = pd.concat([self.dfLog, pd.DataFrame.from_records([{'meanWaitTime':mean, 'action':actions[action], 'dispersion':occDisp}])], ignore_index=True)
+        self.dfLog = pd.concat([self.dfLog, pd.DataFrame.from_records([{'meanWaitTime':mean, 'action':actions[action], 'dispersion':occDisp, 'headwaySD':self.sdVal}])], ignore_index=True)
 
     # occupancy dispersion as calculated in Wang and Sun (2020)
     def occupancyDispersion(self):
