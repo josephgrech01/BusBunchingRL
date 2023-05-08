@@ -21,6 +21,10 @@ import traci
 numBuses = 6
 
 class SumoEnv(gym.Env):
+    # epLen: the number of RL steps before the episode terminates
+    # traffic: set to zero for no traffic or else to the lowest traffic speed in km/h
+    # bunched: True - buses start already bunched, False - buses start evenly spaced
+    # mixedConfigs: Used during training to alternate between already bunched and evenly spaced scenarios
     def __init__(self, gui=False, noWarnings=False, epLen=250, traffic=0, bunched=False, mixedConfigs=False):
         if gui:
             self._sumoBinary = checkBinary('sumo-gui')
@@ -62,7 +66,6 @@ class SumoEnv(gym.Env):
         # stopping time required given the number of people alighting at this stop and those waiting to board
         self.decisionBus = ["bus.0", "stop1", 0]
 
-
         traci.start(self.sumoCmd)
 
         self.busStops = list(traci.simulation.getBusStopIDList()) # get the list of bus stops from the simulation
@@ -97,7 +100,6 @@ class SumoEnv(gym.Env):
 
         self.reward_range = (float('-inf'), 0)
 
-
         self.sdVal = 0
         
         self.dfLog = pd.DataFrame(columns=['meanWaitTime', 'action', 'dispersion', 'headwaySD'])
@@ -121,7 +123,6 @@ class SumoEnv(gym.Env):
             # increase the stopping time of the vehicle by 15 seconds (hence holding the vehicle)
             traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=(self.decisionBus[2]+15))
             
-            
             # UPDATE PEOPLE ON BUS
 
             # boarding
@@ -132,7 +133,6 @@ class SumoEnv(gym.Env):
                 self.personsWithStop[person][1] = self.decisionBus[0] 
                 # increment the number of passengers of the decision bus 
                 self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] += 1 
-
 
             #alighting
             personsOnBus = traci.vehicle.getPersonIDList(self.decisionBus[0])
@@ -149,7 +149,7 @@ class SumoEnv(gym.Env):
             # set the stopping duration to zero, hence skipping the stop
             traci.vehicle.setBusStop(self.decisionBus[0], stopData[0].stoppingPlaceID, duration=0)
 
-        # else action == 2, no action taken and bus behaves normally by letting passengers board and alight
+        # else action == 2, no action taken and bus proceeds normally by letting passengers board and alight
         else:
             stopData = traci.vehicle.getStops(self.decisionBus[0], 1)
             # set the stopping time to the time required just to let passengers board and alight
@@ -166,7 +166,6 @@ class SumoEnv(gym.Env):
                 self.personsWithStop[person][1] = self.decisionBus[0]
                 # increment the number of passengers of the decision bus
                 self.peopleOnBuses[int(self.decisionBus[0][-1])][int(self.personsWithStop[person][0][-1])-1] += 1
-
 
             #alighting
             personsOnBus = traci.vehicle.getPersonIDList(self.decisionBus[0])
@@ -186,7 +185,7 @@ class SumoEnv(gym.Env):
         # the variable reachedStopBuses contains a list of all buses that have reached a stop at this
         # simulation step, with each element containing the bus and the stop it has reached.
         reachedStopBuses = self.reachedStop()
-        while len(reachedStopBuses) < 1: # until no bus has reached a stop
+        while len(reachedStopBuses) < 1: # while no bus has reached a stop
             self.sumoStep()
             reachedStopBuses = self.reachedStop()
 
@@ -207,7 +206,6 @@ class SumoEnv(gym.Env):
 
         reward = self.computeReward()
 
-
         
         # check if episode has terminated
         if self.gymStep > self.epLen:
@@ -216,7 +214,6 @@ class SumoEnv(gym.Env):
             done = True
 
             # self.dfLog.to_csv('results/final/csvs/ppo/TrafficBunched.csv')
-
 
 
             # BUNCHING GRAPH
@@ -283,7 +280,7 @@ class SumoEnv(gym.Env):
         self.episodeNum += 1
         traci.close()
         
-        if self.mixedConfigs:
+        if self.mixedConfigs: # choose the initial state of the environment (bunched or unbunched)
             if self.episodeNum % 2 == 0:
                 self.config = 'sumo/traffic/ring.sumocfg'
             else:
@@ -325,9 +322,9 @@ class SumoEnv(gym.Env):
     # function which returns a list of buses that have reached a stop
     def reachedStop(self):
         reached = []
-        #############
+
         simTime = traci.simulation.getTime()
-        #################
+
         for vehicle in traci.vehicle.getIDList():
             if vehicle[0:3] == "bus":
                 for stop in self.busStops:
@@ -352,10 +349,6 @@ class SumoEnv(gym.Env):
                                     s = int(stop[-2:])
                                 self.bunchingGraphData[busNum][-1].append((simTime, s))
 
-
-
-
-
                         else:
                             # update buses which have left a bus stop such that they are no longer marked as stopped
                             if self.stoppedBuses[int(vehicle[-1])] != None:
@@ -368,7 +361,6 @@ class SumoEnv(gym.Env):
                                     s = int(stop[-1])
                                 else:
                                     s = int(stop[-2:])   
-
 
                                 self.bunchingGraphData[busNum][-1].append((simTime, s))
 
@@ -405,30 +397,25 @@ class SumoEnv(gym.Env):
         if len([bus for bus in traci.vehicle.getIDList() if bus[0:3] == "bus"]) == numBuses:
             self.updatePassengersOnBoard()
 
-
         simTime = traci.simulation.getTime()
 
         if self.traffic != 0:
-            if simTime % 15 == 0:
+            if simTime % 15 == 0: # add a new car in the simulation
                 traci.vehicle.add('car'+str(simTime), 'traffic', typeID='traffic')
-                repeats = random.randint(1,3)
+                repeats = random.randint(1,3) # randomly choose the number of times the new car will loop around the bus corridor
+                # # build the new route of the car according to the number of repeats
                 newRoute = ['E0']
                 for _ in range(repeats):
                     newRoute.extend(['5','6','7','8','9','10','11','0','1','2','3','4'])
                 newRoute.extend(['5','6','7','8','9','E1'])
                 traci.vehicle.setRoute('car'+str(simTime), newRoute)
 
+                # randomly set the speed of the new car
                 speeds = [self.lowestTrafficSpeed, 20, 30, 50]
                 speed = random.randint(0,3)
                 traci.vehicle.setSpeed('car'+str(simTime), speeds[speed])
 
-
-                print("LOWEST: {}, SPEED: {}".format(self.lowestTrafficSpeed, speeds[speed]))
-
         # traci.vehicle.highlight('car1', color=(255,0,255), size=30)
-
-
-
 
 
     # function which computes the state required by the gym environment
@@ -458,7 +445,6 @@ class SumoEnv(gym.Env):
 
     def oneHotEncode(self, list, item):
         return [1 if i == item else 0 for i in list]
-
 
     # function which returns the forward headway of a given bus (follower)
     def getForwardHeadway(self, leader, follower):
@@ -502,7 +488,6 @@ class SumoEnv(gym.Env):
             
     # function which returns the id of the leader and follower buses of the decision bus
     def getFollowerLeader(self, bus=[]):
-
         if bus:
             b = bus[0][-1]
         else:
@@ -570,7 +555,7 @@ class SumoEnv(gym.Env):
         numPassengers = [traci.vehicle.getPersonNumber(leader), traci.vehicle.getPersonNumber(self.decisionBus[0]), traci.vehicle.getPersonNumber(follower)]
         return numPassengers
 
-    # function which computes the reward required by the gym environment
+    # function which computes the reward required by the gym environment and rl algorithm
     def computeReward(self):
 
         headways = self.getHeadways()
@@ -600,7 +585,7 @@ class SumoEnv(gym.Env):
             # add the person to the persons with an assigned stop
             self.personsWithStop[person] = [stop, None]
             
-    # function which determines the dwell time of a bus at a stop based on the number of passengers boarding and alighting
+    # function which determines the dwell time of a bus at a stop based on the number of passengers boarding and alighting, using the boarding and alighting rates
     def getStopTime(self, bus, stop):
 
         # the number of people on the bus stop waiting to board the bus
@@ -659,8 +644,3 @@ class SumoEnv(gym.Env):
         occDisp = variance / average
 
         return occDisp
-
-        
-
-
-

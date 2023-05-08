@@ -1,5 +1,4 @@
 from env import SumoEnv
-import random
 
 env = SumoEnv(gui=True, noWarnings=True, epLen=500, traffic=10, bunched=True)
 
@@ -9,10 +8,10 @@ for episode in range(1, episodes + 1):
     state = env.reset()
 
     done = False
-    score = 0
 
     while not done:
         forwardHeadway, backwardHeadway = env.getHeadways()
+        # choose action based on forward and backward headways
         if forwardHeadway <= 443.33:
             action = 0
         elif backwardHeadway <= 443.33:
@@ -20,8 +19,5 @@ for episode in range(1, episodes + 1):
         else:
             action = 2
         state, reward, done, info = env.step(action)
-        score += reward
-
-
 
 env.close()
