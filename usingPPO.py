@@ -6,8 +6,8 @@ e = SumoEnv(gui=True, noWarnings=True, epLen=500, traffic=10, bunched=True)
 
 # model = PPO.load("eplen250/ppo_Ring_Speed60NewHeadway_Nobusvectorinstate_NoWaitTime_Alpha1_PaperHeadway.zip") #no traffic
 
-model = PPO.load("trafficEplen250/mixedConfigs/reward_paper_lowest10_NoExp/ppo_Nobusvectorinstate_NoWaitTime.zip") #new model (mixed configs)
-
+# model = PPO.load("trafficEplen250/mixedConfigs/reward_paper_lowest10_NoExp/ppo_Nobusvectorinstate_NoWaitTime.zip") #new model (mixed configs)
+model=PPO.load("models/ppoTraffic.zip")
 obs = e.reset()
 # print("obs: ", obs)
 

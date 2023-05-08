@@ -55,21 +55,8 @@ class SumoEnv(gym.Env):
         self.gymStep = 0
        
         self.stoppedBuses = [None for _ in range(numBuses)]
-
-        self.stoppedBusesBool = [False for _ in range(numBuses)]
-
-        if bunched:
-            self.distancesTravelled = [0 for i in range(0, 6)]
-            self.distancesTravelled2 = [0 for i in range(0, 6)]            
-        else:
-            # self.distancesTravelled = [i*886.67 for i in range(0, 6)]
-            self.distancesTravelled = [i*886.67 for i in reversed(range(0, 6))]
-            self.distancesTravelled2 = [i*886.67 for i in reversed(range(0, 6))]
-            print(self.distancesTravelled)
         
-        self.bunchingGraphData = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
-        self.bunchingGraphData2 = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
-        self.bunchingGraphData3 = {0:[[]], 1:[[]], 2:[[]], 3:[[]], 4:[[]], 5:[[]]}
+        self.bunchingGraphData = {0:[[]], 1:[[]], 2:[[]], 3:[[]], 4:[[]], 5:[[]]}
 
         # Variable which contains the bus which has just reached a stop, the bus stop that it has reached, and the
         # stopping time required given the number of people alighting at this stop and those waiting to board
@@ -94,10 +81,6 @@ class SumoEnv(gym.Env):
         self.action_space = Discrete(3)
 
        
-        # old observation space which also contained the bus which is going to stop     
-        # self.low = np.array([0 for _ in range(len(self.busStops))] + [0 for _ in range(numBuses)] +  [0, 0] +  [0 for _ in range(len(self.busStops))] + [0] + [0 for _ in range(len(self.busStops))] + [0, 0, 0], dtype='float32')
-        # self.high = np.array([1 for _ in range(len(self.busStops))] + [1 for _ in range(numBuses)] + [5320, 5320] + [float('inf') for _ in self.busStops] + [float('inf')] + [200000 for _ in self.busStops] + [85, 85, 85], dtype='float32')
-
         # the observation space:
         # contains the stop which the bus has reached, the forward and backward headways of the bus, the number of persons waiting at each stop, 
         # the stopping time required according to the number of people boarding and alighting at this stop, the current maximum passenger waiting 
@@ -113,27 +96,11 @@ class SumoEnv(gym.Env):
         self.observation_space = Box(self.low, self.high, dtype='float32')
 
         self.reward_range = (float('-inf'), 0)
-        # self.reward_range = (0,250)
-        # self.reward_range = (0,500)
-
-
-        self.sd = 0
-        self.headwayReward = 0
-        self.tempReward = 0
 
 
         self.sdVal = 0
-
-
         
-        self.df = pd.DataFrame(columns=['HeadwayRew', 'SD', 'Reward', 'Action'])
-        self.dfBunching = pd.DataFrame(columns=['Bus','Headway','Time'])
-        # now = datetime.now()
-        # time = now.strftime("%H:%M:%S")
-        # self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':"NA", 'Headway':"NA", 'Time':time}])], ignore_index=True)
-
         self.dfLog = pd.DataFrame(columns=['meanWaitTime', 'action', 'dispersion', 'headwaySD'])
-        self.headwaySDLog = pd.DataFrame(columns=['headwaySD'])
 
     # step function required by the gym environment
     # each each step signifies an arrival of a bus at a bus stop 
@@ -230,7 +197,6 @@ class SumoEnv(gym.Env):
         self.stopTime = self.getStopTime(reachedStopBuses[0][0], reachedStopBuses[0][1])
         self.decisionBus = [reachedStopBuses[0][0], reachedStopBuses[0][1], self.stopTime]
 
-        # print("Decision bus speed: ", traci.vehicle.getSpeed(self.decisionBus[0]))
 
 
         ###############################################
@@ -239,98 +205,25 @@ class SumoEnv(gym.Env):
 
         state = self.computeState()
 
-        reward = self.computeReward("sd", 1,0)# 0.6, 0.4)
-
-        # self.df = self.df.append({'SD':self.sd, 'Reward':reward, 'Action':action}, ignore_index=True)
-        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'HeadwayRew':self.headwayReward, 'SD':self.sd, 'Reward':reward, 'Action':action}])], ignore_index=True)
+        reward = self.computeReward()
 
 
         
         # check if episode has terminated
-        if self.gymStep > self.epLen:#125:#1500meanWaitTime
+        if self.gymStep > self.epLen:
             print("DONE, episode num: ", self.episodeNum)
-            # print(self.bunchingGraphData)
+
             done = True
-            # self.df.to_csv('logWithModel.csv')
-            # self.df.to_csv('logWithModelNewHW.csv')
-            # self.df.to_csv('logNewHW.csv')
-            # self.dfBunching.to_csv('bunchingGUIHighSpeedNewModelNewHW.csv')
 
             # self.dfLog.to_csv('results/final/csvs/ppo/TrafficBunched.csv')
-            ####### self.headwaySDLog.to_csv('results/csvs/rbcSDTrafficBunched.csv')
-
-            meanValues = self.dfLog['meanWaitTime'].tolist()
-
-            # fig, ax1 = plt.subplots(1, 1)
-            # ax1.set_xlabel('Step')
-            # ax1.set_ylabel('Mean waiting time (mins)')
-            # ax1.set_title('DQN with Traffic')
-            # ax1.plot(range(1, len(meanValues) + 1), [(mean*9)/60 for mean in meanValues], color='blue', linestyle='-', linewidth=3, label='train')
-            # ax1.grid()
-            # # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
-            # plt.show()
-            # plt.clf()
 
 
-            sd = self.dfLog['headwaySD'].tolist()
-
-
-            fig, ax1 = plt.subplots(1, 1)
-            ax1.set_xlabel('Step')
-            # ax1.set_ylabel('Headway Variance')
-            # ax1.set_title('TRPO on Bunched (Mixed configs)')
-            ax1.plot(range(1, len(sd) + 1), sd, color='blue', linestyle='-', linewidth=3, label='train')
-            ax1.grid()
-            # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
-            plt.show()
-            plt.clf()
-
-            # disp = self.dfLog['dispersion'].tolist()
-            # fig, ax1 = plt.subplots(1, 1)
-            # ax1.set_xlabel('Step')
-            # ax1.set_ylabel('Occupancy Dispersion')
-            # ax1.set_title('PPO No Traffic')
-            # ax1.plot(range(1, len(disp) + 1), disp, color='blue', linestyle='-', linewidth=1.5, label='train')
-            # ax1.grid()
-            # # plt.savefig('graphs/mixedConfigs/trpoBunched.jpg')
-            # plt.show()
-            # plt.clf()
-
-
-
-
-            # print(self.bunchingGraphData3)
-
-
-            # for z in range(0,6):
-            #     x_values = []
-            #     y_values = []
-
-            #     for i in self.bunchingGraphData[z]:
-            #         x_values.append(i[0])
-            #         y_values.append(i[1])
-
-            #     plt.plot(x_values, y_values)
-            # plt.show()
-            # plt.clf()
-
-            # for z in range(0,6):
-            #     x_values = []
-            #     y_values = []
-
-            #     for i in self.bunchingGraphData2[z]:
-            #         x_values.append(i[0])
-            #         y_values.append(i[1])
-
-            #     plt.plot(x_values, y_values)
-            # plt.show()
-            # plt.clf()
 
             # BUNCHING GRAPH
             colours = ['red', 'green', 'orange', 'blue', 'purple', 'black']
             labelled = [False for _ in range(6)]
             for y in range(0,6):
-                for z in self.bunchingGraphData3[y]:
+                for z in self.bunchingGraphData[y]:
                     x_values = []
                     y_values = []
 
@@ -353,7 +246,7 @@ class SumoEnv(gym.Env):
             plt.clf()
 
 
-            # pie chart showing the actions taken
+            # PIE CHART showing the actions taken
             values = []
             labels = []
             actions = self.dfLog['action'].tolist()
@@ -377,11 +270,6 @@ class SumoEnv(gym.Env):
             plt.show()
             plt.clf()
 
-
-
-
-
-  
         else:
             done = False
 
@@ -398,10 +286,9 @@ class SumoEnv(gym.Env):
         if self.mixedConfigs:
             if self.episodeNum % 2 == 0:
                 self.config = 'sumo/traffic/ring.sumocfg'
-                print("########################################################")
             else:
                 self.config = 'sumo/bunched/ring.sumocfg'
-                print("--------------------------------------------------------")
+
         self.sumoCmd = [self._sumoBinary, "-c", self.config, "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false", "--lanechange.overtake-right", "true"]
         if self.noWarnings:
             self.sumoCmd.append("--no-warnings")
@@ -412,14 +299,11 @@ class SumoEnv(gym.Env):
         self.personsWithStop = dict()
         self.peopleOnBuses = [[0]*12, [0]*12, [0]*12, [0]*12, [0]*12, [0]*12]
 
-        self.sd = 0
         self.stopTime = 0
 
         self.sdVal = 0
 
-        self.bunchingGraphData = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
-        self.bunchingGraphData2 = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
-        self.bunchingGraphData3 = {0:[[]], 1:[[]], 2:[[]], 3:[[]], 4:[[]], 5:[[]]}
+        self.bunchingGraphData = {0:[[]], 1:[[]], 2:[[]], 3:[[]], 4:[[]], 5:[[]]}
 
         if self.traffic == -1:
             self.lowestTrafficSpeed = random.randint(7,10)
@@ -437,36 +321,6 @@ class SumoEnv(gym.Env):
 
     def close(self):
         traci.close()
-
-
-    # NOT BEING USED
-    def stoppedBuses(self):
-        stopped = dict()
-        for stop in ["stop1", "stop2", "stop3"]:
-            buses = traci.busstop.getVehicleIDs(stop)
-            for bus in buses:
-                stopped[bus] = stop
-        return stopped
-
-    # NOT BEING USED
-    def newStoppedBus(self):   
-        stopped = dict() 
-        for vehicle in traci.vehicle.getIDList():
-            if vehicle[0:3] == "bus":
-                if traci.vehicle.isAtBusStop(vehicle):
-                    if self.stoppedBuses[int(vehicle[-1])] == None:
-                        # print(vehicle)
-                        #get stop id and update stoppedBuses list
-                        for stop in self.busStops:
-                            buses = traci.busstop.getVehicleIDs(stop)
-                            if vehicle in buses:
-                                self.stoppedBuses[int(vehicle[-1])] = stop
-                                stopped[vehicle] = stop
-
-                else:
-                    if self.stoppedBuses[int(vehicle[-1])] != None:
-                        self.stoppedBuses[int(vehicle[-1])] = None
-        return stopped
 
     # function which returns a list of buses that have reached a stop
     def reachedStop(self):
@@ -489,21 +343,15 @@ class SumoEnv(gym.Env):
                                 # add the bus to the list of newly stopped buses
                                 reached.append([vehicle, stop])
 
-                                ###############
+                                # update bunching graph data
                                 busNum = int(vehicle[-1])
-
-                                self.distancesTravelled2[busNum] += 443.33
-                                self.bunchingGraphData2[busNum].append((simTime, self.distancesTravelled2[busNum]))
-
-
 
                                 if len(stop) == 5:
                                     s = int(stop[-1])
                                 else:
                                     s = int(stop[-2:])
-                                self.bunchingGraphData3[busNum][-1].append((simTime, s))
+                                self.bunchingGraphData[busNum][-1].append((simTime, s))
 
-                                #### 
 
 
 
@@ -512,28 +360,23 @@ class SumoEnv(gym.Env):
                             # update buses which have left a bus stop such that they are no longer marked as stopped
                             if self.stoppedBuses[int(vehicle[-1])] != None:
                                 self.stoppedBuses[int(vehicle[-1])] = None
-                                ########################
+                                
+                                # update bunching graoh data
                                 busNum = int(vehicle[-1])
-                                self.bunchingGraphData2[busNum].append((simTime, self.distancesTravelled2[busNum]))
-
-
-
+                    
                                 if len(stop) == 5:
                                     s = int(stop[-1])
                                 else:
                                     s = int(stop[-2:])   
 
 
-                                self.bunchingGraphData3[busNum][-1].append((simTime, s))
+                                self.bunchingGraphData[busNum][-1].append((simTime, s))
 
                                 if s == 12:
-                                    self.bunchingGraphData3[busNum].append([])
-
-                                # if s != 12:
-                                #     self.bunchingGraphData3[busNum][-1].append((simTime, s))
-                                # else:
-                                #     self.bunchingGraphData3[busNum].append([(simTime, s)])     
+                                    self.bunchingGraphData[busNum].append([])
+    
         
+        # calculate headway standard deviation
         if reached:
             headways = []
             for bus in traci.vehicle.getIDList():
@@ -551,12 +394,6 @@ class SumoEnv(gym.Env):
             sd = math.sqrt(variance)
 
             self.sdVal = sd
-
-            # self.headwaySDLog = pd.concat([self.headwaySDLog, pd.DataFrame.from_records([{'headwaySD':sd}])])
-
-
-
-        
         
         return reached
 
@@ -581,11 +418,6 @@ class SumoEnv(gym.Env):
                 newRoute.extend(['5','6','7','8','9','E1'])
                 traci.vehicle.setRoute('car'+str(simTime), newRoute)
 
-                # if self.traffic == -1:
-                #     lowest = random.randint(7,10)
-                # else:
-                #     lowest = self.traffic
-
                 speeds = [self.lowestTrafficSpeed, 20, 30, 50]
                 speed = random.randint(0,3)
                 traci.vehicle.setSpeed('car'+str(simTime), speeds[speed])
@@ -595,21 +427,6 @@ class SumoEnv(gym.Env):
 
         # traci.vehicle.highlight('car1', color=(255,0,255), size=30)
 
-
-        for bus in self.buses:
-            stopped = traci.vehicle.isAtBusStop(bus)
-            busNum = int(bus[-1])
-            if stopped and not self.stoppedBusesBool[busNum]:
-                self.stoppedBusesBool[busNum] = True
-                self.distancesTravelled[busNum] += 443.33
-                self.bunchingGraphData[busNum].append((simTime, self.distancesTravelled[busNum]))
-                # print("stopped bus {}: {}".format(busNum, (simTime, self.distancesTravelled[busNum])))
-            elif not stopped and self.stoppedBusesBool[busNum]:
-                self.stoppedBusesBool[busNum] = False
-                self.bunchingGraphData[busNum].append((simTime, self.distancesTravelled[busNum]))
-                # print("continues bus {}: {}".format(busNum, (simTime, self.distancesTravelled[busNum])))
-            # else:
-                # print("NOTHING")
 
 
 
@@ -623,20 +440,6 @@ class SumoEnv(gym.Env):
         bus = self.oneHotEncode(self.buses, self.decisionBus[0])
 
         headways = self.getHeadways()
-        # if headways[0] < 100:
-        #     now = datetime.now()
-
-        #     time = now.strftime("%H:%M:%S")
-        #     self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':self.decisionBus[0], 'Headway':headways[0], 'Time':time}])], ignore_index=True)
-        # elif headways[1] < 100:
-        #     now = datetime.now()
-
-        #     time = now.strftime("%H:%M:%S")
-        #     self.dfBunching = pd.concat([self.dfBunching, pd.DataFrame.from_records([{'Bus':self.decisionBus[0], 'Headway':headways[1], 'Time':time}])], ignore_index=True)
-
-        
-        # print("forward headway from decision {} = {}".format(self.decisionBus[0], headways[0]))
-        # print("backward headway from decision {} = {}".format(self.decisionBus[0], headways[1]))
         
         waitingPersons = self.getPersonsOnStops()
 
@@ -645,11 +448,6 @@ class SumoEnv(gym.Env):
         numPassengers = self.getNumPassengers()
 
         speedFactors = self.getSpeedFactors()
-
-
-
-        # old observation space which also included the decision bus
-        # state = stop + bus + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers
         
         if self.traffic != 0:
             state = stop + headways + waitingPersons + [self.stopTime] + maxWaitTimes + numPassengers + speedFactors
@@ -661,22 +459,6 @@ class SumoEnv(gym.Env):
     def oneHotEncode(self, list, item):
         return [1 if i == item else 0 for i in list]
 
-    # NOT BEING USED 
-    def getHeadway(self, leader, follower): # first edge id must be 0, % depends on number of edges #gives forward headway of follower?
-        # forward headway is wrong
-        h = traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower)
-        # print(traci.lane.getLength(traci.vehicle.getLaneID(follower)) - traci.vehicle.getLanePosition(follower))
-        repeats = abs(int(traci.vehicle.getRoadID(leader)) - int(traci.vehicle.getRoadID(follower))) - 1
-        # print("repeats: ", repeats)
-        # print("leader road: ", int(traci.vehicle.getRoadID(leader)))
-        # print("follower road: ", int(traci.vehicle.getRoadID(follower)))
-        for i in range(repeats):
-            h += traci.lane.getLength(str((int(traci.vehicle.getRoadID(follower))+i+1)%6)+"_0")
-
-
-        h += traci.vehicle.getLanePosition(leader) 
-
-        return h
 
     # function which returns the forward headway of a given bus (follower)
     def getForwardHeadway(self, leader, follower):
@@ -789,128 +571,17 @@ class SumoEnv(gym.Env):
         return numPassengers
 
     # function which computes the reward required by the gym environment
-    def computeReward(self, s, alpha, beta):
-        reward = 0
+    def computeReward(self):
+
         headways = self.getHeadways()
 
-        min = 0
-        max = 5320
-
-        # forward = (headways[0] - min)/(max - min)
-        # backward = (headways[1] - min)/(max - min)
         forward = headways[0]
         backward = headways[1]
 
         reward = -abs(forward - backward)
 
-        # reward = -alpha * abs(headways[0] - headways[1])
+        return reward   
 
-        # reward = -abs(headways[0] - headways[1])
-        # self.headwayReward = -alpha * abs(headways[0] - headways[1])
-#################################################################################################
-
-        # # forward headway
-        # if headways[0] <= 886.67:
-        #     forwardReward = headways[0] / 886.67
-        # else: 
-        #     forwardReward = 886.67 / headways[0]
-
-        # # backward headway
-        # if headways[1] <= 886.67:
-        #     backwardReward = headways[1] / 886.67
-        # else: 
-        #     backwardReward = 886.67 / headways[1]
-
-        # reward = forwardReward + backwardReward
-
-        # print("forward reward: ", forwardReward)
-        # print("backward reward: ", backwardReward)
-        # print("total reward: ", reward)
-
-#################################################################################################
-
-        # # forward headway
-        # if headways[0] <= 886.67:
-        #     forward = headways[0] / 886.67
-        # else: 
-        #     forward = 886.67 / headways[0]
-
-        # # backward headway
-        # if headways[1] <= 886.67:
-        #     backward = headways[1] / 886.67
-        # else: 
-        #     backward = 886.67 / headways[1]
-
-        # reward = math.exp(-abs(forward - backward))
-
-#################################################################################################
-        # reward function from paper using only its first term
-        # reward = math.exp(-abs(forward - backward))
-        # self.tempReward += reward
-        # print('reward: ', reward)
-        # print('forward: ', headways[0])
-        # print('backward: ', headways[1])
-        # print('total reward: ', self.tempReward)
-
-
-        # reward = -(abs(886.67-headways[0]) + abs(886.67-headways[1]))/1773.34 #normalize between zero and one (incorrect?)
-        # print(reward)
-
-        # reward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
-        # self.headwayReward = -alpha * (abs(886.67-headways[0]) + abs(886.67-headways[1]))
-
-        
-
-        # print("VARIANCE: ", self.getWaitingTimeVariance())
-
-        #TEST WITHOUT THE WAITING TIME IN REWARD
-        # if s == "variance":
-        #     reward += -beta * self.getWaitingTimeVariance()
-        # elif s == "sd":
-        #     reward += -beta * self.getWaitStandardDevUsingMax()
-        #     self.sd = -beta * self.getWaitStandardDevUsingMax()
-
-        return reward
-        
-
-    def getWaitingTimeVariance(self):
-        meanSquares = []
-        for stop in self.busStops:
-            waitTime = 0
-            
-            totalPersons = traci.busstop.getPersonCount(stop)
-            if totalPersons > 0:
-                personsOnStop = traci.busstop.getPersonIDs(stop)
-                for person in personsOnStop:
-                    waitTime += (traci.person.getWaitingTime(person)) #** 2)
-                    #maximum instead of total
-
-                meanSquares.append(waitTime/totalPersons)
-
-        if len(meanSquares) > 0:
-            average = sum(meanSquares)/len(meanSquares)
-            deviations = [((ms - average) ** 2) for ms in meanSquares]
-            waitingTimeVariance = sum(deviations) / len(meanSquares)
-
-            # print("AVERAGE: ", average)
-            # print("LEN MEAN SQAURES: ", len(meanSquares))
-            # print("DEVIATIONS: ", deviations)
-            # print("MEAN SQUARES: ", meanSquares) 
-        else:
-            # print("ZERO MEAN SQUARES")
-            waitingTimeVariance = 0
-
-        # print("WAIT VARIANCE", waitingTimeVariance)
-        return waitingTimeVariance    
-
-    def getWaitStandardDevUsingMax(self):
-        maximums = [m**2 for m in self.getMaxWaitTimeOnStops()]
-
-        average = sum(maximums)/len(maximums)
-        deviations = [((m - average) ** 2) for m in maximums]
-        variance = sum(deviations)/len(maximums)
-        self.sd = math.sqrt(variance)
-        return math.sqrt(variance)
 
     # function which randomly assigns a destination bus stop to persons yet without a destination
     def updatePersonStop(self):
@@ -938,7 +609,6 @@ class SumoEnv(gym.Env):
         # the number of passengers on this bus that will alight at this stop
         alighting = self.peopleOnBuses[int(bus[-1])][int(stop[-1])-1]
 
-        
         # calculate dwell time according to the boarding and alighting rates in the paper by Wang and Sun 2020
         time = max(math.ceil(boarding/3), math.ceil(abs(alighting)/1.8)) #abs is there just in case is falls below zero if a person should've left a bus but the simulation did not give them time
         
@@ -962,7 +632,7 @@ class SumoEnv(gym.Env):
         speedFactors = [traci.vehicle.getSpeed(leader)/20, traci.vehicle.getSpeed(self.decisionBus[0])/20, traci.vehicle.getSpeed(follower)/20]
         return speedFactors
 
-
+    # logging the values in the dataframe
     def logValues(self, action):
         maxWaitTimes = self.getMaxWaitTimeOnStops()    
         mean = sum(maxWaitTimes)/len(maxWaitTimes)
@@ -973,7 +643,7 @@ class SumoEnv(gym.Env):
 
         self.dfLog = pd.concat([self.dfLog, pd.DataFrame.from_records([{'meanWaitTime':mean, 'action':actions[action], 'dispersion':occDisp, 'headwaySD':self.sdVal}])], ignore_index=True)
 
-    # occupancy dispersion as calculated in Wang and Sun (2020)
+    # occupancy dispersion as calculated in Wang and Sun (2020), using a variance to mean ratio
     def occupancyDispersion(self):
         passengers = []
         for bus in self.buses:
