@@ -33,12 +33,12 @@ class SumoEnv(gym.Env):
         self.mixedConfigs = mixedConfigs
 
         if bunched:
-            self.config = 'bunched/ring.sumocfg'
+            self.config = 'sumo/bunched/ring.sumocfg'
         else:
-            self.config = 'traffic/ring.sumocfg'
+            self.config = 'sumo/traffic/ring.sumocfg'
 
         if self.traffic == 0:
-            self.config = 'ring.sumocfg'
+            self.config = 'sumo/noTraffic/ring.sumocfg'
 
         self.noWarnings = noWarnings
         self.sumoCmd = [self._sumoBinary, "-c", self.config, "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false", "--lanechange.overtake-right", "true"]
@@ -256,8 +256,8 @@ class SumoEnv(gym.Env):
             # self.df.to_csv('logNewHW.csv')
             # self.dfBunching.to_csv('bunchingGUIHighSpeedNewModelNewHW.csv')
 
-            self.dfLog.to_csv('results/final/csvs/ppo/TrafficBunched.csv')
-            # self.headwaySDLog.to_csv('results/csvs/rbcSDTrafficBunched.csv')
+            # self.dfLog.to_csv('results/final/csvs/ppo/TrafficBunched.csv')
+            ####### self.headwaySDLog.to_csv('results/csvs/rbcSDTrafficBunched.csv')
 
             meanValues = self.dfLog['meanWaitTime'].tolist()
 
@@ -348,7 +348,7 @@ class SumoEnv(gym.Env):
             plt.xlabel('Time (mins)')
             plt.ylabel('Bus Stop')
             plt.legend(loc=4)
-            plt.savefig('results/final/bunching/ppo/TrafficBunchedBunching.jpg')
+            # plt.savefig('results/final/bunching/ppo/TrafficBunchedBunching.jpg')
             plt.show()
             plt.clf()
 
@@ -373,7 +373,7 @@ class SumoEnv(gym.Env):
 
             plt.pie(values, labels=labels, autopct='%1.1f%%')
             plt.title('Actions (PPO, Traffic, Bunched).jpg')
-            plt.savefig('results/final/actions/ppo/TrafficBunchedActions.jpg')
+            # plt.savefig('results/final/actions/ppo/TrafficBunchedActions.jpg')
             plt.show()
             plt.clf()
 
@@ -397,10 +397,10 @@ class SumoEnv(gym.Env):
         
         if self.mixedConfigs:
             if self.episodeNum % 2 == 0:
-                self.config = 'traffic/ring.sumocfg'
+                self.config = 'sumo/traffic/ring.sumocfg'
                 print("########################################################")
             else:
-                self.config = 'bunched/ring.sumocfg'
+                self.config = 'sumo/bunched/ring.sumocfg'
                 print("--------------------------------------------------------")
         self.sumoCmd = [self._sumoBinary, "-c", self.config, "--tripinfo-output", "tripinfo.xml", "--no-internal-links", "false", "--lanechange.overtake-right", "true"]
         if self.noWarnings:
