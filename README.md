@@ -1,5 +1,5 @@
 # Control Strategies for Transport Network Optimisatioin
-## RL to minimise and prevent Bus Bunching
+## RL to minimise and recover from Bus Bunching
 
 This repository contains all the code, trained models, and results corresponding to a study that made use of Reinforcement Learning to tackle the Bus Bunching phenomenon. This work used the PPO and TRPO algorithms from Stable-Baselines3 on a bus route simulated using the SUMO traffic simulator. The Python code makes use of the TraCI API which makes it possible to alter the course of the simulation by applying the actions chosen by the algorithms as the episode progresses. 
 
